@@ -1,0 +1,21 @@
+services:
+  docUpload:
+    image: postgres:16
+    container_name: docUpload-db
+    environment:
+      POSTGRES_DB: docUpload
+      POSTGRES_PASSWORD: password
+    volumes:
+      - docUpload-data:/var/lib/postgresql/data
+    ports:
+      - "5436:5432"
+    networks:
+      - docUpload-network
+
+networks:
+  docUpload-network:
+    driver: bridge
+
+volumes:
+  docUpload-data:
+    driver: local
