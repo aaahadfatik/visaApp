@@ -1,5 +1,5 @@
 import { DataSource } from 'typeorm';
-import { User,Role,Document,Notification,Chat,Message,Application } from './entity';
+import { User,Role,Document,Notification,Chat,Message,Application,Service } from './entity';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -10,7 +10,7 @@ export const dataSource = new DataSource({
   database: process.env.DB_NAME,
   username: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  entities: [ Role,User,Document,Notification,Chat,Message,Application ],
+  entities: [ Role,User,Document,Notification,Chat,Message,Application,Service ],
   synchronize: true,
   logging: true,
 });

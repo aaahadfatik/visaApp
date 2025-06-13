@@ -18,10 +18,11 @@ export enum PaymentMethodType {
 
   export enum VisaType {
     EMIRATESID   = 'EMIRATESID',
-    TOURIST      = 'TOURIST',
-    RESIDENCE    = 'RESIDENCE',
+    GOLDENVISA   = 'GOLDENVISA',
     MEDICALTEST  = 'MEDICALTEST',
     INSURANCE    = 'INSURANCE',
+    RESIDENCE    = 'RESIDENCE',
+    TOURIST      = 'TOURIST',
   }
 
   export enum ApplicationPriority {
