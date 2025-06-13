@@ -12,13 +12,14 @@ type Service {
   salesCount: Int!
   isFeature: Boolean!
   isForSale: Boolean!
+
+  applications: [Application!]!
 }
 
 input CreateServiceInput {
   title: String!
   description: String!
   price: Float!
-  imageUrl: String
   isFeature: Boolean
 }
 

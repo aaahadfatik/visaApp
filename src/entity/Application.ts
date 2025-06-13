@@ -9,6 +9,7 @@ import User from './User';
 import BaseEntity from './BaseEntity';
 import Document from './Document';
 import { VisaType,ApplicationPriority,ApplicationType } from '../enum';
+import Service from './Service';
   
 @Entity()
 export default class Application extends BaseEntity {
@@ -57,5 +58,7 @@ export default class Application extends BaseEntity {
   @Column({ type: 'enum', enum: ApplicationType })
   applicationType!: ApplicationType;
 
+  @ManyToOne(() => Service, { eager: true, nullable: true })
+  service!: Service;
 }
   

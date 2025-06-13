@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, Generated } from 'typeorm';
 import BaseEntity from './BaseEntity';
+import Application from './Application';
 
 @Entity()
 export default class Service extends BaseEntity {
@@ -26,4 +27,7 @@ export default class Service extends BaseEntity {
 
   @Column({ default: 0 })
   salesCount!: number;
+
+  @OneToMany(() => Application, (app) => app.service)
+  applications!: Application[];
 }
