@@ -41,6 +41,9 @@ type Application {
   accountNumber: String!
   applicationPriority: ApplicationPriority!
   applicationType: ApplicationType!
+  createdAt: DateTime!
+
+  service: Service
 }
 
 input CreateApplicationInput {
@@ -58,6 +61,7 @@ input CreateApplicationInput {
   accountNumber: String!
   applicationPriority: ApplicationPriority!
   applicationType: ApplicationType!
+  serviceId: ID
 }
 
 input UpdateApplicationInput {
@@ -77,7 +81,8 @@ input UpdateApplicationInput {
 }
 
 type Query {
-  getVisaApplication(id: ID!): Application
+  getApplication(id: ID!): Application
+  getApplications(take: Int skip: Int): Application
   listVisaApplications(applicantId: ID, limit: Int, offset: Int): [Application!]!
 }
 

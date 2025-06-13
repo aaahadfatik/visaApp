@@ -22,6 +22,9 @@ export default class User extends BaseEntity{
   @Column()
   email!: string;
 
+  @Column({nullable:true})
+  picture!: string;
+
   @Column({ nullable: true })
   organizationName?: string;
 
@@ -31,7 +34,7 @@ export default class User extends BaseEntity{
   @Column()
   password!: string;
 
-  @Column()
+  @Column({nullable:true})
   emirate!: string;
 
   @Column({default: false})

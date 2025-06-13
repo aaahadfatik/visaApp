@@ -17,22 +17,26 @@ type Role {
 type User {
   id: ID!
   name: String
+  phone: String
+  email: String!
+  picture: String
   organizationName: String
   position: String
-  phone: String!
-  email: String!
   password: String!
-  otp:Int
-  isCompany: Boolean
+  emirate: String
+  isSalary: Boolean
+  isExpirence: Boolean
+  otp: Int!
   isActive: Boolean
+  isCompany: Boolean
   isProfileCompleted: Boolean
   lastLoginDate: String
   refreshToken: String
-  roleId: String
-  role: Role
-  documents: [Document]
-  notifications: [Notification]
-  applications: [Application]
+  roleId: ID
+  role: Role!
+  documents: [Document!]
+  notifications: [Notification!]
+  applications: [Application!]
 }
 
 input CreateRoleInput {
@@ -46,36 +50,41 @@ input UpdateRoleInput {
 
 input UserInput {
   name: String
+  phone: String!
+  email: String!
+  password: String!
+
+  picture: String
+
+  isCompany: Boolean
   organizationName: String
   position: String
-  phone: String
-  email: String
-  password: String
-  otp:Int
-  isCompany: Boolean
+  isSalary: Boolean
+  isExpirence: Boolean
   isActive: Boolean
   isProfileCompleted: Boolean
   lastLoginDate: String
   refreshToken: String
-  roleId: String
   documents: [CreateDocumentInput]
 }
 
 input UpdateUserInput {
   id:String!
   name: String
+  phone: String
+  email: String!
   organizationName: String
   position: String
-  phone: String
-  email: String
-  password: String
-  otp:Int
-  isCompany: Boolean
+  password: String!
+  emirate: String!
+  isSalary: Boolean
+  isExpirence: Boolean
   isActive: Boolean
+  isCompany: Boolean
   isProfileCompleted: Boolean
   lastLoginDate: String
   refreshToken: String
-  roleId: String
+  roleId: ID
 }
 
 
@@ -110,7 +119,7 @@ type Mutation {
   createRole(input: CreateRoleInput!): Role!
   updateRole(input: UpdateRoleInput!): Role!
 
-  login(accountnumber: Int!,email:String password: String!): LoginRes
+  login(email:String password: String!): LoginRes
   logout: LogoutResponse
 
   createUser(input: UserInput!): User!

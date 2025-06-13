@@ -19,6 +19,8 @@ if (!jwtSecret) {
 
 // Create an instance of ApolloServer
 const app: any = express();
+app.use(express.json({ limit: '10mb' })); // ⬅️ Increase to 10 MB
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 app.use(express.static('public'))
 

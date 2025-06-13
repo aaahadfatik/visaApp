@@ -2,6 +2,7 @@ import { Service } from "../../entity";
 import { dataSource } from '../../datasource';
 import { authenticate } from '../../utils/authUtils';
 import { Not } from "typeorm";
+import { CreateService } from "types";
 
 const serviceResolvers = {
   Query: {
@@ -23,10 +24,9 @@ const serviceResolvers = {
   },
 
   Mutation: {
-    createService: async (_: any, { input }: { input: Partial<Service> }, context: any) => {
+    createService: async (_: any, { input }: { input: CreateService }, context: any) => {
       const usercxt = await authenticate(context);
       const serviceRepository = dataSource.getRepository(Service);
-
       const service = serviceRepository.create(input);
       return await serviceRepository.save(service);
     },

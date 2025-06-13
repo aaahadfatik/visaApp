@@ -47,6 +47,7 @@ export interface CreateUserInput {
   phone: string
   email: string
   password: string
+  picture: string
   otp:number
   isCompany: boolean
   isActive: boolean
@@ -134,7 +135,7 @@ export interface UpdateNotificationInput {
 }
 export interface CreateApplicationInput {
   applicantId: string
-  files: Document[]
+  files: CreateDocumentInput[]
   visaType: string
   sponsorName: string
   sponsorNumber: string
@@ -147,6 +148,7 @@ export interface CreateApplicationInput {
   accountNumber: string
   applicationPriority: ApplicationPriority
   applicationType: ApplicationType
+  serviceId?: string
 }
 
 export interface UpdateApplicationInput {
@@ -163,4 +165,10 @@ export interface UpdateApplicationInput {
   accountNumber: string
   applicationPriority: ApplicationPriority
   applicationType: ApplicationType
+}
+
+export interface CreateService {
+  name: string;
+  description: string;
+  price: number;
 }
