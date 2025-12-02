@@ -72,3 +72,9 @@ yarn-error.log
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
+
+
+*.json
+!package.json
+firebase-adminsdk-*.json
+uaevisaapp-firebase-adminsdk-fbsvc-c08b4d1df0.json
