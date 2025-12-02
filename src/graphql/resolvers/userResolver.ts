@@ -22,7 +22,7 @@ const userResolvers = {
         // }
         return await userRepository.findOne({
           where: { id },
-          relations: ['applications','documents','notifications'],
+          relations: ['documents', 'notifications', 'applications'],
         });
     },
     getUsers: async (_: any, { limit, offset }: { limit: number; offset: number },context: any) => {
@@ -141,7 +141,7 @@ const userResolvers = {
           // Hash the password
           const hashedPassword = await bcrypt.hash(input.password, saltRounds);
           const { password, ...userData } = input;
-          if (input.picture) input.picture = await processFile(input.picture) || input.picture;
+          if (input.picture) input.picture 
 
           // Create the new user
           const newUser = userRepository.create({
@@ -159,16 +159,11 @@ const userResolvers = {
           // Process vehicle pictures array
           if (input.documents && input.documents.length > 0) {
             await Promise.all(input.documents.map(async (pic) => {
-              const uploaded = await processFile(pic.filePath);
-              if (uploaded) {
-                const newDoc = documentRepository.create({
-                  ...pic,
-                  filePath: uploaded,
-                  createdBy: savedUser.id,
-                  createdAt: new Date()
-                });
-                await documentRepository.save(newDoc);
-              }
+              const newDoc = documentRepository.create({
+                ...pic,
+                user: savedUser, // ✅ connect to the user properly
+              });
+              await documentRepository.save(newDoc);
             }));
           }
 
@@ -217,7 +212,7 @@ const userResolvers = {
           password: undefined, // Exclude password from the returned object
         };
       }catch(error){
-        throw Error("error on updating User")
+        throw Error(`error on updating User ${error}`)
       }
     },
     refreshToken: async (_: any, { token }: { token: string }) => {
@@ -237,57 +232,7 @@ const userResolvers = {
         throw new Error('Invalid or expired refresh token');
       }
     },
-  }
+  },
 };
 
 export default userResolvers;
-
-export const processFile = async (base64: string): Promise<string | null> => {
-  const fs = require('fs').promises;
-  const path = require('path');
-
-  if (!base64 || typeof base64 !== 'string') {
-    console.warn('Invalid file input:', base64);
-    return null;
-  }
-
-  const match = base64.match(/^data:(.*?);base64,(.*)$/);
-  if (!match) {
-    console.warn('Base64 format is incorrect:', base64.substring(0, 30));
-    return null;
-  }
-
-  const mimeType = match[1];
-  const base64Data = match[2];
-
-  let fileExtension = '';
-  let folder = '';
-  let mimePrefix = '';
-
-  if (mimeType.startsWith('image/')) {
-    fileExtension = mimeType.split('/')[1] || 'jpg';
-    folder = '/var/www/visaApp/public/static';
-    mimePrefix = 'static';
-  } else if (mimeType === 'application/pdf') {
-    fileExtension = 'pdf';
-    folder = '/var/www/visaApp/public/docs';
-    mimePrefix = 'docs';
-  } else {
-    console.warn('Unsupported MIME type:', mimeType);
-    return null;
-  }
-
-  const buffer = Buffer.from(base64Data, 'base64');
-  const filename = `file-${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExtension}`;
-  const filePath = path.join(folder, filename);
-
-  try {
-    await fs.writeFile(filePath, buffer);
-    const publicUrl = `https://visaapp.duckdns.org/${mimePrefix}/${filename}`;
-    console.log('File saved:', publicUrl);
-    return publicUrl;
-  } catch (error) {
-    console.error('Error writing file:', error);
-    return null;
-  }
-};

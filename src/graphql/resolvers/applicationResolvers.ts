@@ -2,7 +2,6 @@ import { Application, User,Document } from '../../entity';
 import { dataSource } from '../../datasource';
 import { authenticate } from '../../utils/authUtils';
 import { CreateApplicationInput} from '../../types';
-import { processFile } from './userResolver';
 import { VisaType } from 'enum';
 
 const applicationRepository = dataSource.getRepository(Application);
@@ -39,29 +38,27 @@ const applicationResolvers = {
         const user= await userRepository.findOne({where:{id:authUser.userId}})
         if (!user) throw new Error('Applicent not found');
 
-        const { files, ...rest } = input;
+        const { files, passengers, passengerCount, ...rest } = input;
 
         const application = applicationRepository.create({
             ...rest,
             visaType: input.visaType as VisaType,
             applicant: user,
             service: input.serviceId ? { id: input.serviceId } : undefined,
+            passengerCount,
         });
 
         const newApp = await applicationRepository.save(application);
 
         // Process file uploads
         for (const file of input.files) {
-            const processedFilePath = file.filePath ? await processFile(file.filePath) : null;
-            if (!processedFilePath) continue;
 
             const document = documentRepository.create({
             title: file.title,
             fileName: file.fileName,
             fileType: file.fileType,
-            filePath: processedFilePath,
+            filePath: "processedFilePath",
             description: file.description,
-            application: newApp,
             });
 
             await documentRepository.save(document);
@@ -74,15 +71,15 @@ const applicationResolvers = {
         
         return updatedApp;
     },
-    updateApplication: async (_: any, { input }: { input: any }) => {
-        const application = await applicationRepository.findOne({ where: { id: input.id } });
-        if (!application) {
-            throw new Error('Application not found');
-        }
-        Object.assign(application, input);
-        await applicationRepository.save(application);
-        return application;
-    },
+    // updateApplication: async (_: any, { input }: { input: any }) => {
+    //     const application = await applicationRepository.findOne({ where: { id: input.id } });
+    //     if (!application) {
+    //         throw new Error('Application not found');
+    //     }
+    //     Object.assign(application, input);
+    //     await applicationRepository.save(application);
+    //     return application;
+    // },
     deleteApplication: async (_: any, { id }: { id: string }) => {
         const application = await applicationRepository.findOne({ where: { id } });
         if (!application) {

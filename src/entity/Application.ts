@@ -16,11 +16,10 @@ export default class Application extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @ManyToOne(() => User, (user) => user.documents, { onDelete: 'CASCADE' })
-  applicant!: User;     
-  
-  @OneToMany(() => Document, (f) => f.application, { cascade: true,nullable: true })
-  files!: Document[];
+  @ManyToOne(() => User, user => user.applications, {  // ← correct inverse
+    onDelete: 'CASCADE',
+  })
+  applicant!: User;    
 
   @Column({ type: 'enum', enum: VisaType })
   visaType!: VisaType;
@@ -32,13 +31,7 @@ export default class Application extends BaseEntity {
   sponsorNumber!: string;
 
   @Column()
-  whatsappNumber!: string;
-
-  @Column()
-  emiratesId!: string;
-
-  @Column()
-  emirate!: string;                                  
+  whatsappNumber!: string;                                 
 
   @Column()
   uidNumber!: string;
@@ -60,5 +53,8 @@ export default class Application extends BaseEntity {
 
   @ManyToOne(() => Service, { eager: true, nullable: true })
   service!: Service;
+
+  @Column({ default: 0 })
+  passengerCount!: number;
 }
   

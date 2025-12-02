@@ -1,5 +1,3 @@
-
-  
 export enum InvoiceStatus {
     PAID='PAID',
     UNPAID='UNPAID',
@@ -38,3 +36,23 @@ export enum PaymentMethodType {
     CANCELLATION = 'CANCELLATION',
     MODIFICATION = 'MODIFICATION',
   }
+
+  export enum AttributeType {
+    FIELD = "FIELD",
+    DOCUMENT = "DOCUMENT",
+    INPUT="INPUT" ,
+    TEXTAREA="TEXTAREA",
+    PHONE="PHONE" ,
+    FILE="FILE"  ,
+    DROPDOWN="DROPDOWN",
+    COLLAPSIBLE_SECTION= "COLLAPSIBLE_SECTION",
+    DATE="DATE",
+    CHECK_BOX="CHECK_BOX",
+  }
+
+export enum FormStatus {
+    COMPLETED = 'COMPLETED',
+    UNDER_PROGRESS = 'UNDER_PROGRESS',
+    REJECTED = 'REJECTED',
+    RETURN_MODIFICATION = 'RETURN_MODIFICATION',
+}

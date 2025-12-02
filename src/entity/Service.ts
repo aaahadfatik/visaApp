@@ -1,6 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, Generated } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, Generated, ManyToMany } from 'typeorm';
 import BaseEntity from './BaseEntity';
-import Application from './Application';
+import Category from './Category';
 
 @Entity()
 export default class Service extends BaseEntity {
@@ -10,24 +10,27 @@ export default class Service extends BaseEntity {
   @Column()
   title!: string;
 
-  @Column("text")
-  description!: string;
-
-  @Column({ type: "float", default: 0 })
-  price!: number;
-
-  @Column({ default: false })
-  isFeature!: boolean;
-
-  @Column({ nullable: true })
-  imageUrl?: string;
-
   @Column({ default: false })
   isForSale!: boolean;
 
-  @Column({ default: 0 })
-  salesCount!: number;
+  @OneToMany(() => Category, (category) => category.service)
+  categories!: Category[];
 
-  @OneToMany(() => Application, (app) => app.service)
-  applications!: Application[];
+  // @Column("text")
+  // description!: string;
+
+  // @Column({ type: "float", default: 0 })
+  // price!: number;
+
+  // @Column({ default: false })
+  // isFeature!: boolean;
+
+  // @Column({ nullable: true })
+  // imageUrl?: string;
+
+  // @Column({ default: 0 })
+  // salesCount!: number;
+
+  // @OneToMany(() => Application, (app) => app.service)
+  // applications!: Application[];
 }

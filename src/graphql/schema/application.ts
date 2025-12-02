@@ -2,6 +2,7 @@ import { gql } from 'apollo-server';
 
 const application = gql`
 scalar DateTime
+scalar JSON
 
 enum VisaType {
   EMIRATESID  
@@ -25,6 +26,14 @@ enum ApplicationType {
   MODIFICATION
 }
 
+type Passenger {
+  id: ID!
+  name: String!
+  dob: String!
+  isChild: Boolean!
+  application: Application!
+}
+
 type Application {
   id: ID!
   applicant: User!
@@ -33,8 +42,6 @@ type Application {
   sponsorName: String!
   sponsorNumber: String!
   whatsappNumber: String!
-  emiratesId: String!
-  emirate: String!
   uidNumber: String!
   address: String!
   comments: String
@@ -42,8 +49,16 @@ type Application {
   applicationPriority: ApplicationPriority!
   applicationType: ApplicationType!
   createdAt: DateTime!
+  passengerCount: Int!
 
+  passengers: [Passenger!]!
   service: Service
+}
+
+input PassengerInput {
+  name: String!
+  dob: String!
+  isChild: Boolean
 }
 
 input CreateApplicationInput {
@@ -53,8 +68,6 @@ input CreateApplicationInput {
   sponsorName: String!
   sponsorNumber: String!
   whatsappNumber: String!
-  emiratesId: String!
-  emirate: String!
   uidNumber: String!
   address: String!
   comments: String
@@ -62,6 +75,8 @@ input CreateApplicationInput {
   applicationPriority: ApplicationPriority!
   applicationType: ApplicationType!
   serviceId: ID
+  passengerCount: Int!
+  passengers: [PassengerInput!]!
 }
 
 input UpdateApplicationInput {
@@ -70,8 +85,6 @@ input UpdateApplicationInput {
   sponsorName: String
   sponsorNumber: String
   whatsappNumber: String
-  emiratesId: String
-  emirate: String
   uidNumber: String
   address: String
   comments: String
@@ -88,7 +101,7 @@ type Query {
 
 type Mutation {
   createApplication(input: CreateApplicationInput!): Application!
-  updateApplication(input: UpdateApplicationInput!): Application!
+  updateApplication(applicationId: String!): FormSubmission!
   deleteApplication(id: ID!): Boolean!
 
   # optional helper to attach / remove single file without full update
