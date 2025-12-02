@@ -23,7 +23,6 @@ type User {
   organizationName: String
   position: String
   password: String!
-  emirate: String
   isSalary: Boolean
   isExpirence: Boolean
   otp: Int!
@@ -37,6 +36,7 @@ type User {
   documents: [Document!]
   notifications: [Notification!]
   applications: [Application!]
+  fcmToken: String
 }
 
 input CreateRoleInput {
@@ -66,25 +66,27 @@ input UserInput {
   lastLoginDate: String
   refreshToken: String
   documents: [CreateDocumentInput]
+  fcmToken: String
 }
 
 input UpdateUserInput {
   id:String!
   name: String
   phone: String
-  email: String!
+  email: String
   organizationName: String
   position: String
-  password: String!
-  emirate: String!
+  password: String
   isSalary: Boolean
   isExpirence: Boolean
   isActive: Boolean
   isCompany: Boolean
   isProfileCompleted: Boolean
   lastLoginDate: String
+  picture: String
   refreshToken: String
   roleId: ID
+  fcmToken: String
 }
 
 
@@ -127,6 +129,9 @@ type Mutation {
 
   generateClientAccountNumber: String
   refreshToken(token: String!): AuthResponse
+}
+type Subscription {
+  newNotification: Notification!
 }
 `;
 

@@ -3,9 +3,11 @@ import {
     PrimaryGeneratedColumn,
     Column,
     ManyToOne,
+    JoinColumn,
   } from 'typeorm';
 import BaseEntity from './BaseEntity';
-import Application from './Application';
+import FormSubmission from './FormSubmission';
+import User from './User';
   
   @Entity()
   export default class Document extends BaseEntity {
@@ -27,7 +29,14 @@ import Application from './Application';
     @Column({ nullable: true })
     description?: string;
 
-    @ManyToOne(() => Application, (a) => a.files, { nullable: true })
-    application!: Application;
+    @ManyToOne(() => User, user => user.documents, {
+      onDelete: 'CASCADE',nullable:true
+    })
+    @JoinColumn({ name: 'createdById' }) // FK column
+    user!: User;
+
+    @ManyToOne(() => FormSubmission, (f) => f.documents, { nullable: true, onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'formSubmissionId' }) // explicitly define FK
+    formSubmission!: FormSubmission;
   }
   

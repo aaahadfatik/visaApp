@@ -34,9 +34,6 @@ export default class User extends BaseEntity{
   @Column()
   password!: string;
 
-  @Column({nullable:true})
-  emirate!: string;
-
   @Column({default: false})
   isSalary?: boolean;
 
@@ -63,12 +60,15 @@ export default class User extends BaseEntity{
 
   @Column({ nullable: true })
   roleId?: string; 
+
+  @Column({nullable:true})
+  fcmToken?: string
   
   @ManyToOne(() => Role, (role) => role.users, { eager: true })
   role!: Role;
 
-  @OneToMany(() => Document, (document) => document.createdBy, {nullable: true})
-  documents!: Document[];
+  @OneToMany(() => Document, document => document.user)
+documents!: Document[];
 
   @OneToMany(() => Notification, (notification) => notification.user, { nullable: true })
   notifications?: Notification[]; 

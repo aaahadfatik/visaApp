@@ -1,5 +1,7 @@
 import { DataSource } from 'typeorm';
-import { User,Role,Document,Notification,Chat,Message,Application,Service } from './entity';
+import { 
+  User,Role,Document,Notification,Chat,Message,Application,Service,Form,FormAttribute,Visa,Category,FormSubmission,Payment
+} from './entity';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -10,7 +12,7 @@ export const dataSource = new DataSource({
   database: process.env.DB_NAME,
   username: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  entities: [ Role,User,Document,Notification,Chat,Message,Application,Service ],
+  entities: [ Role,User,Document,Notification,Chat,Message,Application,Service,Form,FormAttribute,Visa,Category,FormSubmission,Payment],
   synchronize: true,
   logging: true,
 });

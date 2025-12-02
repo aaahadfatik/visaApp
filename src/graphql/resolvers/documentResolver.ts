@@ -1,5 +1,10 @@
 import { dataSource } from '../../datasource';
 import { Document,User } from '../../entity';
+import { UpdateDocumentInput } from 'types';
+
+const documentRepo = dataSource.getRepository(Document);
+const userRepo = dataSource.getRepository(User);
+
 
 const documentResolver = {
   Query: {
@@ -36,16 +41,14 @@ const documentResolver = {
 
       return await documentRepo.save(newDoc);
     },
-
-    updateDocument: async (_: any, { input }: { input: any }) => {
-      const documentRepo = dataSource.getRepository(Document);
-      const doc = await documentRepo.findOne({ where: { id: input.id } });
-      if (!doc) throw new Error('Document not found');
+    updateDocument: async (_: any, { input }: { input: UpdateDocumentInput }) => {
+      const doc = await documentRepo.findOne({ where:{id:input.id}  });
+      if (!doc) throw new Error('User not found');
 
       Object.assign(doc, input);
+      
       return await documentRepo.save(doc);
     },
-
     deleteDocument: async (_: any, { id }: { id: string }) => {
       const documentRepo = dataSource.getRepository(Document);
       const result = await documentRepo.delete(id);

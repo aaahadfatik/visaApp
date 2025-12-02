@@ -1,5 +1,5 @@
 import { User, Role } from "../entity";
-import { ApplicationType, ApplicationPriority } from "../enum";
+import { ApplicationType, ApplicationPriority, AttributeType } from "../enum";
 
 declare global {
   namespace Express {
@@ -55,6 +55,7 @@ export interface CreateUserInput {
   lastLoginDate: string
   refreshToken: string
   roleId: string
+  fcmToken?:string
   documents: [CreateDocumentInput]
 }
 
@@ -72,7 +73,9 @@ export interface UpdateUserInput {
   isProfileCompleted: boolean
   lastLoginDate: string
   refreshToken: string
+  picture: string
   roleId: string
+  fcmToken:string
 }
 
 export interface LoginInput {
@@ -133,6 +136,11 @@ export interface UpdateNotificationInput {
   createdAt: Date
   updatedAt: Date
 }
+export interface PassengerInput {
+  name: string;
+  dob: string;
+  isChild?: boolean; 
+}
 export interface CreateApplicationInput {
   applicantId: string
   files: CreateDocumentInput[]
@@ -140,8 +148,6 @@ export interface CreateApplicationInput {
   sponsorName: string
   sponsorNumber: string
   whatsappNumber: string
-  emiratesId: string
-  emirate: string
   uidNumber: string
   address: string
   comments: string
@@ -149,6 +155,8 @@ export interface CreateApplicationInput {
   applicationPriority: ApplicationPriority
   applicationType: ApplicationType
   serviceId?: string
+  passengerCount: number;
+  passengers: PassengerInput[];
 }
 
 export interface UpdateApplicationInput {
@@ -157,8 +165,6 @@ export interface UpdateApplicationInput {
   sponsorName: string
   sponsorNumber: string
   whatsappNumber: string
-  emiratesId: string
-  emirate: string
   uidNumber: string
   address: string
   comments: string
@@ -167,8 +173,82 @@ export interface UpdateApplicationInput {
   applicationType: ApplicationType
 }
 
-export interface CreateService {
-  name: string;
-  description: string;
-  price: number;
+export interface CreateServiceInput {
+  title: string;
+  isForSale?: boolean;
+  categoryIds?: string[];
 }
+
+export interface UpdateServiceInput {
+  id: string;
+  title?: string;
+  isForSale?: boolean;
+  categoryIds?: string[];
+}
+
+export interface CreateCategoryInput {
+  title: string;
+  isForSale?: boolean;
+  serviceId: string;
+}
+
+export interface UpdateCategoryInput {
+  id: string;
+  title?: string;
+  isForSale?: boolean;
+  serviceId?: string; // single ID, not an array
+}
+
+export interface CreateVisaInput {
+  title: string;
+  vipPrice: number;
+  vvipPrice: number;
+  normalPrice: number;
+  categoryId: string;
+  description?: string[]; 
+  info?: string[];
+}
+
+export interface UpdateVisaInput {
+  id: string;
+  title?: string;
+  vipPrice?: number;
+  vvipPrice?: number;
+  normalPrice?: number;
+  categoryId?: string;
+  description?: string[]; 
+  info?: string[];
+}
+
+export interface CreateFormInput {
+  visaId: string;
+  attributes: FormAttributeInput[];
+}
+
+export interface FormAttributeInput {
+  id: string;
+  name: string; // e.g. "applicantName"
+  type: AttributeType; // e.g. "input" or "docupload"
+  label: string;
+  placeholder?: string;
+  required: boolean;
+  multiple: boolean;
+  options?: string[]; // for dropdowns
+  children: FormAttributeInput[]
+}
+
+export interface FormAnswerInput {
+  attributeName: string;
+  values: any[]; // Using JSON scalar
+  children?: FormAnswerInput[];
+}
+
+export interface SubmitFormInput {
+  formId: string;
+  visaId: string;
+  answers: FormAnswerInput[];
+  documents: CreateDocumentInput[];
+}
+
+
+export type FormAttributeType = 'FIELD' | 'DOCUMENT';
