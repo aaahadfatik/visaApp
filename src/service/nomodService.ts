@@ -3,7 +3,7 @@ import { dataSource } from "../datasource";
 import { FormSubmission, Payment } from "../entity/";
 
 const API_KEY = process.env.NOMOD_API_KEY;
-const BASE_URL = process.env.NOMOD_API_BASE_URL || 'https://api.nomod.com';
+const BASE_URL = process.env.NOMOD_API_BASE_URL || 'https://api.nomod.com/v1';
 
 // Log configuration on startup (without exposing the full API key)
 if (API_KEY) {
