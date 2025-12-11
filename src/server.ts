@@ -145,7 +145,32 @@ app.post('/upload', upload.single('file'), (req: express.Request, res: express.R
 
 app.post('/create-payment', async (req: express.Request, res: express.Response) => {
   try {
-    const { title, currency, items, note, success_url, failure_url } = req.body;
+    console.log('🟢 POST /create-payment - Request received');
+    const { title, currency, items, note, success_url, failure_url, submittedFormId } = req.body;
+
+    // Validate required fields
+    if (!title || !currency || !items || !success_url || !failure_url) {
+      console.error('❌ Missing required fields');
+      return res.status(400).json({ 
+        error: 'Missing required fields', 
+        required: ['title', 'currency', 'items', 'success_url', 'failure_url'] 
+      });
+    }
+
+    // Validate items have valid amounts
+    if (items.length === 0) {
+      return res.status(400).json({ error: 'At least one item is required' });
+    }
+
+    for (const item of items) {
+      if (!item.amount || parseFloat(item.amount) <= 0) {
+        console.error('❌ Invalid item amount:', item);
+        return res.status(400).json({ 
+          error: 'Invalid item amount. All items must have a non-zero amount.',
+          invalidItem: item
+        });
+      }
+    }
 
     const payment = await createPaymentLink({
       title,
@@ -154,6 +179,7 @@ app.post('/create-payment', async (req: express.Request, res: express.Response) 
       note,
       success_url,
       failure_url,
+      submittedFormId,
       discount_percentage: 0,
       shipping_address_required: false,
       allow_tip: false,
@@ -163,9 +189,14 @@ app.post('/create-payment', async (req: express.Request, res: express.Response) 
       payment_expiry_limit: 2,
     });
 
+    console.log('✅ Payment link created successfully');
     res.json(payment);
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    console.error('❌ Error in /create-payment:', err);
+    res.status(500).json({ 
+      error: err.message,
+      details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
   }
 });
 
