@@ -163,7 +163,8 @@ app.post('/create-payment', async (req: express.Request, res: express.Response) 
     }
 
     for (const item of items) {
-      if (!item.amount || parseFloat(item.amount) <= 0) {
+      const amount = parseFloat(item.amount);
+      if (!item.amount || isNaN(amount) || amount <= 0) {
         console.error('❌ Invalid item amount:', item);
         return res.status(400).json({ 
           error: 'Invalid item amount. All items must have a non-zero amount.',
@@ -193,10 +194,16 @@ app.post('/create-payment', async (req: express.Request, res: express.Response) 
     res.json(payment);
   } catch (err: any) {
     console.error('❌ Error in /create-payment:', err);
-    res.status(500).json({ 
-      error: err.message,
-      details: process.env.NODE_ENV === 'development' ? err.stack : undefined
-    });
+    
+    const errorResponse: any = { error: err.message };
+    
+    // Only include detailed error information in development
+    if (process.env.NODE_ENV === 'development') {
+      errorResponse.stack = err.stack;
+      errorResponse.name = err.name;
+    }
+    
+    res.status(500).json(errorResponse);
   }
 });
 

@@ -46,7 +46,13 @@ interface PaymentItem {
     try {
       console.log('🔵 Creating Nomod payment link...');
       console.log('📤 Request URL:', `${BASE_URL}/links`);
-      console.log('📦 Request payload:', JSON.stringify(options, null, 2));
+      
+      // Log payload details without exposing full sensitive data in production
+      if (process.env.NODE_ENV === 'development') {
+        console.log('📦 Request payload:', JSON.stringify(options, null, 2));
+      } else {
+        console.log('📦 Payment request:', { title: options.title, currency: options.currency, itemCount: options.items.length });
+      }
       
       if (!API_KEY) {
         throw new Error('NOMOD_API_KEY is not configured. Please set the environment variable.');
