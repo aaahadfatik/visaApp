@@ -169,7 +169,7 @@ interface PaymentItem {
       
       // Only mark payment as failed if it was successfully saved to DB
       // and the error occurred during/after Nomod API call
-      if (paymentSavedToDb && payment && payment.id) {
+      if (paymentSavedToDb && payment) {
         try {
           payment.status = 'failed';
           await paymentRepo.save(payment);
