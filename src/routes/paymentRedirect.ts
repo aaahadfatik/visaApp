@@ -32,8 +32,8 @@ router.get('/payment/success', (req: express.Request, res: express.Response) => 
   const paymentId = String(req.query.id || req.query.paymentId || req.query.reference_id || '');
   const status = String(req.query.status || 'paid');
   
-  // Construct deep link to open mobile app
-  const deepLink = `uaevisaapp://payment/success?paymentId=${paymentId}&status=${status}`;
+  // Construct deep link to open mobile app (URL encode query parameters)
+  const deepLink = `uaevisaapp://payment/success?paymentId=${encodeURIComponent(paymentId)}&status=${encodeURIComponent(status)}`;
   
   logger.info('Redirecting to:', deepLink);
   
@@ -153,7 +153,8 @@ router.get('/payment/failure', (req: express.Request, res: express.Response) => 
   const status = String(req.query.status || 'failed');
   const errorMessage = String(req.query.error || req.query.message || 'Payment was not completed');
   
-  const deepLink = `uaevisaapp://payment/failure?paymentId=${paymentId}&status=${status}&error=${encodeURIComponent(errorMessage)}`;
+  // Construct deep link to open mobile app (URL encode all query parameters)
+  const deepLink = `uaevisaapp://payment/failure?paymentId=${encodeURIComponent(paymentId)}&status=${encodeURIComponent(status)}&error=${encodeURIComponent(errorMessage)}`;
   
   logger.info('Redirecting to:', deepLink);
   
