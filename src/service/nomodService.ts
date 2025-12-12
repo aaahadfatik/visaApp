@@ -43,13 +43,14 @@ interface PaymentItem {
   
   
   export async function createPaymentLink(options: PaymentLinkOptions) {
+    const paymentRepo = dataSource.getRepository(Payment);
+    let payment: Payment | null = null;
+    
     try {
       console.log('🔵 Creating Nomod payment link...');
       
       // 1. First, save a placeholder Payment to DB to get UUID
-      const paymentRepo = dataSource.getRepository(Payment);
-      
-      const payment = paymentRepo.create({
+      payment = paymentRepo.create({
         nomodId: '', // Will be updated after Nomod API call
         title: options.title,
         url: '', // Will be updated after Nomod API call
@@ -77,8 +78,8 @@ interface PaymentItem {
 
       // 2. Append payment ID to success and failure URLs
       const urlSeparator = (url: string) => url.includes('?') ? '&' : '?';
-      const successUrlWithPaymentId = `${options.success_url}${urlSeparator(options.success_url)}paymentId=${payment.id}`;
-      const failureUrlWithPaymentId = `${options.failure_url}${urlSeparator(options.failure_url)}paymentId=${payment.id}`;
+      const successUrlWithPaymentId = `${options.success_url}${urlSeparator(options.success_url)}paymentId=${encodeURIComponent(payment.id)}`;
+      const failureUrlWithPaymentId = `${options.failure_url}${urlSeparator(options.failure_url)}paymentId=${encodeURIComponent(payment.id)}`;
       
       console.log('🔗 Success URL with payment ID:', successUrlWithPaymentId);
       console.log('🔗 Failure URL with payment ID:', failureUrlWithPaymentId);
@@ -154,6 +155,18 @@ interface PaymentItem {
       return data;
     } catch (error) {
       console.error('❌ Error in createPaymentLink:', error);
+      
+      // If payment was created but Nomod API call failed, mark it as failed
+      if (payment && payment.id) {
+        try {
+          payment.status = 'failed';
+          await paymentRepo.save(payment);
+          console.log('⚠️ Payment marked as failed due to error:', payment.id);
+        } catch (updateError) {
+          console.error('❌ Failed to update payment status:', updateError);
+        }
+      }
+      
       throw error;
     }
   }
