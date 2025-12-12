@@ -2,6 +2,24 @@ import express from 'express';
 
 const router = express.Router();
 
+// Timing constants for redirect behavior
+const REDIRECT_DELAY_MS = 1000; // Delay before attempting to open app
+const FALLBACK_DISPLAY_DELAY_MS = 3000; // Delay before showing fallback button
+const STATUS_UPDATE_DELAY_MS = 5000; // Delay before updating status message
+
+/**
+ * HTML entity encode a string for safe use in HTML attributes
+ * Protects against XSS attacks
+ */
+function htmlEntityEncode(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 /**
  * Payment success redirect handler
  * Receives redirect from Nomod and forwards to mobile app via deep link
@@ -21,12 +39,7 @@ router.get('/payment/success', (req, res) => {
   const deepLink = `uaevisaapp://payment/success?paymentId=${encodeURIComponent(paymentId)}&referenceId=${encodeURIComponent(referenceId)}`;
   
   // HTML entity encode for safe attribute use
-  const deepLinkHtmlSafe = deepLink
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+  const deepLinkHtmlSafe = htmlEntityEncode(deepLink);
   
   res.send(`
     <!DOCTYPE html>
@@ -134,18 +147,18 @@ router.get('/payment/success', (req, res) => {
         setTimeout(() => {
           console.log('Attempting to open app...');
           window.location.href = deepLink;
-        }, 1000);
+        }, ${REDIRECT_DELAY_MS});
         
         // Show fallback button after 3 seconds
         setTimeout(() => {
           document.getElementById('status').textContent = 'Opening app...';
           document.getElementById('fallback').classList.add('show');
-        }, 3000);
+        }, ${FALLBACK_DISPLAY_DELAY_MS});
         
         // Update status after 5 seconds
         setTimeout(() => {
           document.getElementById('status').textContent = "Please tap the button above if the app hasn't opened.";
-        }, 5000);
+        }, ${STATUS_UPDATE_DELAY_MS});
       </script>
     </body>
     </html>
@@ -170,12 +183,7 @@ router.get('/payment/failure', (req, res) => {
   const deepLink = `uaevisaapp://payment/failure?paymentId=${encodeURIComponent(paymentId)}&referenceId=${encodeURIComponent(referenceId)}&error=${encodeURIComponent(error)}`;
   
   // HTML entity encode for safe attribute use
-  const deepLinkHtmlSafe = deepLink
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+  const deepLinkHtmlSafe = htmlEntityEncode(deepLink);
   
   res.send(`
     <!DOCTYPE html>
@@ -282,16 +290,16 @@ router.get('/payment/failure', (req, res) => {
         setTimeout(() => {
           console.log('Attempting to open app...');
           window.location.href = deepLink;
-        }, 1000);
+        }, ${REDIRECT_DELAY_MS});
         
         setTimeout(() => {
           document.getElementById('status').textContent = 'Opening app...';
           document.getElementById('fallback').classList.add('show');
-        }, 3000);
+        }, ${FALLBACK_DISPLAY_DELAY_MS});
         
         setTimeout(() => {
           document.getElementById('status').textContent = "Please tap the button above if the app hasn't opened.";
-        }, 5000);
+        }, ${STATUS_UPDATE_DELAY_MS});
       </script>
     </body>
     </html>
