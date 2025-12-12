@@ -12,9 +12,9 @@ router.get('/payment/success', (req: express.Request, res: express.Response) => 
   logger.info('✅ Payment success redirect accessed');
   logger.info('Query params:', req.query);
   
-  // Nomod typically sends payment details in query params
-  // Common params: id, reference_id, status, etc.
-  const paymentId = String(req.query.id || req.query.paymentId || req.query.reference_id || '');
+  // Extract our internal payment ID from query params (included in the URL we sent to Nomod)
+  // Also check for Nomod's own IDs as fallback
+  const paymentId = String(req.query.paymentId || req.query.id || req.query.reference_id || '');
   const status = String(req.query.status || 'paid');
   
   // Construct deep link to open mobile app (URL encode query parameters)
@@ -129,7 +129,9 @@ router.get('/payment/failure', (req: express.Request, res: express.Response) => 
   logger.info('❌ Payment failure redirect accessed');
   logger.info('Query params:', req.query);
   
-  const paymentId = String(req.query.id || req.query.paymentId || req.query.reference_id || '');
+  // Extract our internal payment ID from query params (included in the URL we sent to Nomod)
+  // Also check for Nomod's own IDs as fallback
+  const paymentId = String(req.query.paymentId || req.query.id || req.query.reference_id || '');
   const status = String(req.query.status || 'failed');
   const errorMessage = String(req.query.error || req.query.message || 'Payment was not completed');
   

@@ -45,11 +45,56 @@ interface PaymentItem {
   export async function createPaymentLink(options: PaymentLinkOptions) {
     try {
       console.log('🔵 Creating Nomod payment link...');
+      
+      // 1. First, save a placeholder Payment to DB to get UUID
+      const paymentRepo = dataSource.getRepository(Payment);
+      
+      const payment = paymentRepo.create({
+        nomodId: '', // Will be updated after Nomod API call
+        title: options.title,
+        url: '', // Will be updated after Nomod API call
+        amount: '0', // Will be updated after Nomod API call
+        currency: options.currency,
+        status: 'pending', // Temporary status
+        note: options.note || '',
+        items: options.items,
+        discount: '0',
+        service_fee: '0',
+        custom_fields: options.custom_fields || [],
+        allow_tip: options.allow_tip || false,
+        allow_tabby: options.allow_tabby || false,
+        allow_tamara: options.allow_tamara || false,
+        allow_service_fee: options.allow_service_fee || false,
+        success_url: options.success_url,
+        failure_url: options.failure_url,
+        payment_expiry_limit: options.payment_expiry_limit,
+        expiry_date: options.expiry_date,
+        requestPayload: options // store full request for debugging
+      });
+
+      await paymentRepo.save(payment);
+      console.log('💾 Payment created in database with ID:', payment.id);
+
+      // 2. Append payment ID to success and failure URLs
+      const urlSeparator = (url: string) => url.includes('?') ? '&' : '?';
+      const successUrlWithPaymentId = `${options.success_url}${urlSeparator(options.success_url)}paymentId=${payment.id}`;
+      const failureUrlWithPaymentId = `${options.failure_url}${urlSeparator(options.failure_url)}paymentId=${payment.id}`;
+      
+      console.log('🔗 Success URL with payment ID:', successUrlWithPaymentId);
+      console.log('🔗 Failure URL with payment ID:', failureUrlWithPaymentId);
+
+      // 3. Create the Nomod payment link with updated URLs
+      const nomodPayload = {
+        ...options,
+        success_url: successUrlWithPaymentId,
+        failure_url: failureUrlWithPaymentId
+      };
+
       console.log('📤 Request URL:', `${BASE_URL}/links`);
       
       // Log payload details without exposing full sensitive data in production
       if (process.env.NODE_ENV === 'development') {
-        console.log('📦 Request payload:', JSON.stringify(options, null, 2));
+        console.log('📦 Request payload:', JSON.stringify(nomodPayload, null, 2));
       } else {
         console.log('📦 Payment request:', { title: options.title, currency: options.currency, itemCount: options.items.length });
       }
@@ -64,7 +109,7 @@ interface PaymentItem {
           'Content-Type': 'application/json',
           'X-API-KEY': API_KEY,
         },
-        body: JSON.stringify(options),
+        body: JSON.stringify(nomodPayload),
       });
     
       console.log('📥 Nomod API Response Status:', response.status);
@@ -78,46 +123,35 @@ interface PaymentItem {
       const data = await response.json();
       console.log('✅ Nomod payment link created successfully:', data.id);
 
-  // 2. Save to DB
-  const paymentRepo = dataSource.getRepository(Payment);
+      // 4. Update the payment record with Nomod response data
+      payment.nomodId = data.id;
+      payment.url = data.url;
+      payment.amount = data.amount;
+      payment.status = data.status;
+      payment.discount = data.discount;
+      payment.service_fee = data.service_fee;
+      payment.custom_fields = data.custom_fields;
+      payment.allow_tip = data.allow_tip;
+      payment.allow_tabby = data.allow_tabby;
+      payment.allow_tamara = data.allow_tamara;
+      payment.allow_service_fee = data.allow_service_fee;
+      payment.payment_expiry_limit = data.payment_expiry_limit;
+      payment.expiry_date = data.expiry_date;
 
-  const payment = paymentRepo.create({
-    nomodId: data.id,
-    title: data.title,
-    url: data.url,
-    amount: data.amount,
-    currency: data.currency,
-    status: data.status,
-    note: data.note,
-    items: data.items,
-    discount: data.discount,
-    service_fee: data.service_fee,
-    custom_fields: data.custom_fields,
-    allow_tip: data.allow_tip,
-    allow_tabby: data.allow_tabby,
-    allow_tamara: data.allow_tamara,
-    allow_service_fee: data.allow_service_fee,
-    success_url: options.success_url,
-    failure_url: options.failure_url,
-    payment_expiry_limit: data.payment_expiry_limit,
-    expiry_date: data.expiry_date,
-    requestPayload: options // store full request for debugging
-  });
+      await paymentRepo.save(payment);
+      console.log('✅ Payment record updated in database');
 
-  await paymentRepo.save(payment);
-  console.log('💾 Payment saved to database:', payment.id);
+      // 5. Update form submission with paymentId if submittedFormId is provided
+      if (options.submittedFormId) {
+        const submission = await submissionRepo.findOneBy({ id: options.submittedFormId });
+        if (submission) {
+          submission.paymentId = payment.id;
+          await submissionRepo.save(submission);
+          console.log('🔗 Form submission linked to payment');
+        }
+      }
 
-  // update form submission with paymentId if submittedFormId is provided
-  if (options.submittedFormId) {
-    const submission = await submissionRepo.findOneBy({ id: options.submittedFormId });
-    if (submission) {
-      submission.paymentId = payment.id;
-      await submissionRepo.save(submission);
-      console.log('🔗 Form submission linked to payment');
-    }
-  }
-
-  return data;
+      return data;
     } catch (error) {
       console.error('❌ Error in createPaymentLink:', error);
       throw error;
