@@ -20,8 +20,13 @@ router.get('/payment/success', (req, res) => {
   // Build deep link URL for mobile app - encodeURIComponent for XSS protection
   const deepLink = `uaevisaapp://payment/success?paymentId=${encodeURIComponent(paymentId)}&referenceId=${encodeURIComponent(referenceId)}`;
   
-  // Escape for safe use in HTML/JavaScript context
-  const deepLinkEscaped = deepLink.replace(/'/g, "\\'").replace(/"/g, '\\"');
+  // HTML entity encode for safe attribute use
+  const deepLinkHtmlSafe = deepLink
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
   
   res.send(`
     <!DOCTYPE html>
@@ -97,7 +102,7 @@ router.get('/payment/success', (req, res) => {
         }
       </style>
     </head>
-    <body>
+    <body data-deep-link="${deepLinkHtmlSafe}">
       <div class="container">
         <div class="icon">✅</div>
         <h1>Payment Successful!</h1>
@@ -107,20 +112,28 @@ router.get('/payment/success', (req, res) => {
         
         <div class="fallback" id="fallback">
           <p>If the app doesn't open automatically:</p>
-          <button onclick="window.location.href='${deepLinkEscaped}'">
+          <button id="openAppBtn">
             Open UAE Visa App
           </button>
         </div>
       </div>
       
       <script>
+        // Get deep link from data attribute (safe from XSS)
+        const deepLink = document.body.getAttribute('data-deep-link');
+        
         console.log('Payment success page loaded');
-        console.log('Deep link:', '${deepLinkEscaped}');
+        console.log('Deep link:', deepLink);
+        
+        // Set up button handler
+        document.getElementById('openAppBtn').onclick = function() {
+          window.location.href = deepLink;
+        };
         
         // Try to open the app immediately
         setTimeout(() => {
           console.log('Attempting to open app...');
-          window.location.href = '${deepLinkEscaped}';
+          window.location.href = deepLink;
         }, 1000);
         
         // Show fallback button after 3 seconds
@@ -131,7 +144,7 @@ router.get('/payment/success', (req, res) => {
         
         // Update status after 5 seconds
         setTimeout(() => {
-          document.getElementById('status').textContent = 'Please tap the button above if the app hasn' + String.fromCharCode(39) + 't opened.';
+          document.getElementById('status').textContent = "Please tap the button above if the app hasn't opened.";
         }, 5000);
       </script>
     </body>
@@ -156,8 +169,13 @@ router.get('/payment/failure', (req, res) => {
   
   const deepLink = `uaevisaapp://payment/failure?paymentId=${encodeURIComponent(paymentId)}&referenceId=${encodeURIComponent(referenceId)}&error=${encodeURIComponent(error)}`;
   
-  // Escape for safe use in HTML/JavaScript context
-  const deepLinkEscaped = deepLink.replace(/'/g, "\\'").replace(/"/g, '\\"');
+  // HTML entity encode for safe attribute use
+  const deepLinkHtmlSafe = deepLink
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
   
   res.send(`
     <!DOCTYPE html>
@@ -233,7 +251,7 @@ router.get('/payment/failure', (req, res) => {
         }
       </style>
     </head>
-    <body>
+    <body data-deep-link="${deepLinkHtmlSafe}">
       <div class="container">
         <div class="icon">❌</div>
         <h1>Payment Failed</h1>
@@ -243,19 +261,27 @@ router.get('/payment/failure', (req, res) => {
         
         <div class="fallback" id="fallback">
           <p>If the app doesn't open automatically:</p>
-          <button onclick="window.location.href='${deepLinkEscaped}'">
+          <button id="openAppBtn">
             Open UAE Visa App
           </button>
         </div>
       </div>
       
       <script>
+        // Get deep link from data attribute (safe from XSS)
+        const deepLink = document.body.getAttribute('data-deep-link');
+        
         console.log('Payment failure page loaded');
-        console.log('Deep link:', '${deepLinkEscaped}');
+        console.log('Deep link:', deepLink);
+        
+        // Set up button handler
+        document.getElementById('openAppBtn').onclick = function() {
+          window.location.href = deepLink;
+        };
         
         setTimeout(() => {
           console.log('Attempting to open app...');
-          window.location.href = '${deepLinkEscaped}';
+          window.location.href = deepLink;
         }, 1000);
         
         setTimeout(() => {
@@ -264,7 +290,7 @@ router.get('/payment/failure', (req, res) => {
         }, 3000);
         
         setTimeout(() => {
-          document.getElementById('status').textContent = 'Please tap the button above if the app hasn' + String.fromCharCode(39) + 't opened.';
+          document.getElementById('status').textContent = "Please tap the button above if the app hasn't opened.";
         }, 5000);
       </script>
     </body>
