@@ -1,6 +1,22 @@
 import express from 'express';
+import { logger } from '../utils/logger';
 
 const router = express.Router();
+
+/**
+ * HTML escape function to prevent XSS attacks
+ */
+function escapeHtml(text: string | number): string {
+  const str = String(text);
+  const map: { [key: string]: string } = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return str.replace(/[&<>"']/g, (m) => map[m]);
+}
 
 /**
  * Payment Success Redirect
@@ -8,18 +24,23 @@ const router = express.Router();
  * This page then redirects to the mobile app
  */
 router.get('/payment/success', (req: express.Request, res: express.Response) => {
-  console.log('✅ Payment success redirect accessed');
-  console.log('Query params:', req.query);
+  logger.info('✅ Payment success redirect accessed');
+  logger.info('Query params:', req.query);
   
   // Nomod typically sends payment details in query params
   // Common params: id, reference_id, status, etc.
-  const paymentId = req.query.id || req.query.paymentId || req.query.reference_id || '';
-  const status = req.query.status || 'paid';
+  const paymentId = String(req.query.id || req.query.paymentId || req.query.reference_id || '');
+  const status = String(req.query.status || 'paid');
   
   // Construct deep link to open mobile app
   const deepLink = `uaevisaapp://payment/success?paymentId=${paymentId}&status=${status}`;
   
-  console.log('Redirecting to:', deepLink);
+  logger.info('Redirecting to:', deepLink);
+  
+  // Escape values to prevent XSS
+  const escapedDeepLink = escapeHtml(deepLink);
+  const escapedPaymentId = escapeHtml(paymentId);
+  const escapedStatus = escapeHtml(status);
   
   // Send HTML page with auto-redirect
   res.send(`
@@ -96,14 +117,14 @@ router.get('/payment/success', (req: express.Request, res: express.Response) => 
         <p>Your transaction has been completed.</p>
         <div class="loader"></div>
         <p id="status">Opening UAE Visa App...</p>
-        <a href="${deepLink}" class="manual-link" id="manual-link" style="display:none;">
+        <a href="${escapedDeepLink}" class="manual-link" id="manual-link" style="display:none;">
           Open App Manually
         </a>
       </div>
       
       <script>
         // Attempt to open the app immediately
-        window.location.href = '${deepLink}';
+        window.location.href = ${JSON.stringify(deepLink)};
         
         // Show manual link after 2 seconds if redirect didn't work
         setTimeout(function() {
@@ -112,8 +133,8 @@ router.get('/payment/success', (req: express.Request, res: express.Response) => 
         }, 2000);
         
         // Log for debugging
-        console.log('Redirecting to:', '${deepLink}');
-        console.log('Payment ID:', '${paymentId}');
+        console.log('Redirecting to:', ${JSON.stringify(deepLink)});
+        console.log('Payment ID:', ${JSON.stringify(String(paymentId))});
       </script>
     </body>
     </html>
@@ -125,16 +146,21 @@ router.get('/payment/success', (req: express.Request, res: express.Response) => 
  * Nomod redirects here after failed payment
  */
 router.get('/payment/failure', (req: express.Request, res: express.Response) => {
-  console.log('❌ Payment failure redirect accessed');
-  console.log('Query params:', req.query);
+  logger.info('❌ Payment failure redirect accessed');
+  logger.info('Query params:', req.query);
   
-  const paymentId = req.query.id || req.query.paymentId || req.query.reference_id || '';
-  const status = req.query.status || 'failed';
-  const errorMessage = req.query.error || req.query.message || 'Payment was not completed';
+  const paymentId = String(req.query.id || req.query.paymentId || req.query.reference_id || '');
+  const status = String(req.query.status || 'failed');
+  const errorMessage = String(req.query.error || req.query.message || 'Payment was not completed');
   
-  const deepLink = `uaevisaapp://payment/failure?paymentId=${paymentId}&status=${status}&error=${encodeURIComponent(errorMessage as string)}`;
+  const deepLink = `uaevisaapp://payment/failure?paymentId=${paymentId}&status=${status}&error=${encodeURIComponent(errorMessage)}`;
   
-  console.log('Redirecting to:', deepLink);
+  logger.info('Redirecting to:', deepLink);
+  
+  // Escape values to prevent XSS
+  const escapedDeepLink = escapeHtml(deepLink);
+  const escapedPaymentId = escapeHtml(paymentId);
+  const escapedErrorMessage = escapeHtml(errorMessage);
   
   res.send(`
     <!DOCTYPE html>
@@ -210,22 +236,22 @@ router.get('/payment/failure', (req: express.Request, res: express.Response) => 
         <p>Your transaction could not be completed.</p>
         <div class="loader"></div>
         <p id="status">Opening UAE Visa App...</p>
-        <a href="${deepLink}" class="manual-link" id="manual-link" style="display:none;">
+        <a href="${escapedDeepLink}" class="manual-link" id="manual-link" style="display:none;">
           Open App Manually
         </a>
       </div>
       
       <script>
-        window.location.href = '${deepLink}';
+        window.location.href = ${JSON.stringify(deepLink)};
         
         setTimeout(function() {
           document.getElementById('status').textContent = 'App not opening automatically?';
           document.getElementById('manual-link').style.display = 'inline-block';
         }, 2000);
         
-        console.log('Redirecting to:', '${deepLink}');
-        console.log('Payment ID:', '${paymentId}');
-        console.log('Error:', '${errorMessage}');
+        console.log('Redirecting to:', ${JSON.stringify(deepLink)});
+        console.log('Payment ID:', ${JSON.stringify(String(paymentId))});
+        console.log('Error:', ${JSON.stringify(String(errorMessage))});
       </script>
     </body>
     </html>
