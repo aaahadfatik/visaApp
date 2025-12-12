@@ -16,6 +16,7 @@ import fs from 'fs';
 import admin from './firebase';
 import {logger} from './utils/logger'
 import { createPaymentLink, getPaymentStatus } from './service/nomodService';
+import paymentRedirectRoutes from './routes/paymentRedirect';
 
 const userRepository = dataSource.getRepository(User);
 
@@ -27,6 +28,9 @@ if (!jwtSecret) {
 
 const app:any = express();
 app.use(express.json());
+
+// Payment redirect routes (must be before other routes)
+app.use(paymentRedirectRoutes);
 
 const staticDir = 'public/static'; //local
 // const staticDir = '/var/www/visaApp/public/static';
