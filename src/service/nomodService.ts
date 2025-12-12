@@ -45,6 +45,7 @@ interface PaymentItem {
   export async function createPaymentLink(options: PaymentLinkOptions) {
     const paymentRepo = dataSource.getRepository(Payment);
     let payment: Payment | null = null;
+    let paymentSavedToDb = false;
     
     try {
       console.log('🔵 Creating Nomod payment link...');
@@ -74,6 +75,7 @@ interface PaymentItem {
       });
 
       await paymentRepo.save(payment);
+      paymentSavedToDb = true;
       console.log('💾 Payment created in database with ID:', payment.id);
 
       // 2. Append payment ID to success and failure URLs
@@ -139,8 +141,17 @@ interface PaymentItem {
       payment.payment_expiry_limit = data.payment_expiry_limit;
       payment.expiry_date = data.expiry_date;
 
-      await paymentRepo.save(payment);
-      console.log('✅ Payment record updated in database');
+      try {
+        await paymentRepo.save(payment);
+        console.log('✅ Payment record updated in database');
+      } catch (updateError) {
+        // Critical: Nomod payment link was created successfully but database update failed
+        // Log critical error but don't throw - the payment link is valid in Nomod's system
+        console.error('🚨 CRITICAL: Payment created in Nomod but database update failed:', updateError);
+        console.error('🚨 Nomod Payment ID:', data.id);
+        console.error('🚨 Internal Payment ID:', payment.id);
+        // Continue execution to return the Nomod response
+      }
 
       // 5. Update form submission with paymentId if submittedFormId is provided
       if (options.submittedFormId) {
@@ -156,8 +167,9 @@ interface PaymentItem {
     } catch (error) {
       console.error('❌ Error in createPaymentLink:', error);
       
-      // If payment was created but Nomod API call failed, mark it as failed
-      if (payment && payment.id) {
+      // Only mark payment as failed if it was successfully saved to DB
+      // and the error occurred during/after Nomod API call
+      if (paymentSavedToDb && payment && payment.id) {
         try {
           payment.status = 'failed';
           await paymentRepo.save(payment);
