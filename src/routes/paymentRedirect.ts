@@ -11,14 +11,17 @@ router.get('/payment/success', (req, res) => {
   console.log('Query params:', req.query);
   
   // Nomod may send payment ID as 'id', 'payment_id', 'reference_id', or in other formats
-  const paymentId = req.query.id || req.query.payment_id || req.query.reference_id || '';
-  const referenceId = req.query.reference_id || '';
+  const paymentId = String(req.query.id || req.query.payment_id || req.query.reference_id || '');
+  const referenceId = String(req.query.reference_id || '');
   
   console.log('Payment ID:', paymentId);
   console.log('Reference ID:', referenceId);
   
-  // Build deep link URL for mobile app
-  const deepLink = `uaevisaapp://payment/success?paymentId=${paymentId}&referenceId=${referenceId}`;
+  // Build deep link URL for mobile app - encodeURIComponent for XSS protection
+  const deepLink = `uaevisaapp://payment/success?paymentId=${encodeURIComponent(paymentId)}&referenceId=${encodeURIComponent(referenceId)}`;
+  
+  // Escape for safe use in HTML/JavaScript context
+  const deepLinkEscaped = deepLink.replace(/'/g, "\\'").replace(/"/g, '\\"');
   
   res.send(`
     <!DOCTYPE html>
@@ -104,7 +107,7 @@ router.get('/payment/success', (req, res) => {
         
         <div class="fallback" id="fallback">
           <p>If the app doesn't open automatically:</p>
-          <button onclick="window.location.href='${deepLink}'">
+          <button onclick="window.location.href='${deepLinkEscaped}'">
             Open UAE Visa App
           </button>
         </div>
@@ -112,12 +115,12 @@ router.get('/payment/success', (req, res) => {
       
       <script>
         console.log('Payment success page loaded');
-        console.log('Deep link:', '${deepLink}');
+        console.log('Deep link:', '${deepLinkEscaped}');
         
         // Try to open the app immediately
         setTimeout(() => {
           console.log('Attempting to open app...');
-          window.location.href = '${deepLink}';
+          window.location.href = '${deepLinkEscaped}';
         }, 1000);
         
         // Show fallback button after 3 seconds
@@ -128,7 +131,7 @@ router.get('/payment/success', (req, res) => {
         
         // Update status after 5 seconds
         setTimeout(() => {
-          document.getElementById('status').textContent = 'Please tap the button above if the app hasn\\'t opened.';
+          document.getElementById('status').textContent = 'Please tap the button above if the app hasn' + String.fromCharCode(39) + 't opened.';
         }, 5000);
       </script>
     </body>
@@ -144,14 +147,17 @@ router.get('/payment/failure', (req, res) => {
   console.log('🔴 Payment failure redirect received');
   console.log('Query params:', req.query);
   
-  const paymentId = req.query.id || req.query.payment_id || req.query.reference_id || '';
-  const referenceId = req.query.reference_id || '';
-  const error = req.query.error || 'Payment failed';
+  const paymentId = String(req.query.id || req.query.payment_id || req.query.reference_id || '');
+  const referenceId = String(req.query.reference_id || '');
+  const error = String(req.query.error || 'Payment failed');
   
   console.log('Payment ID:', paymentId);
   console.log('Error:', error);
   
-  const deepLink = `uaevisaapp://payment/failure?paymentId=${paymentId}&referenceId=${referenceId}&error=${encodeURIComponent(error as string)}`;
+  const deepLink = `uaevisaapp://payment/failure?paymentId=${encodeURIComponent(paymentId)}&referenceId=${encodeURIComponent(referenceId)}&error=${encodeURIComponent(error)}`;
+  
+  // Escape for safe use in HTML/JavaScript context
+  const deepLinkEscaped = deepLink.replace(/'/g, "\\'").replace(/"/g, '\\"');
   
   res.send(`
     <!DOCTYPE html>
@@ -237,7 +243,7 @@ router.get('/payment/failure', (req, res) => {
         
         <div class="fallback" id="fallback">
           <p>If the app doesn't open automatically:</p>
-          <button onclick="window.location.href='${deepLink}'">
+          <button onclick="window.location.href='${deepLinkEscaped}'">
             Open UAE Visa App
           </button>
         </div>
@@ -245,11 +251,11 @@ router.get('/payment/failure', (req, res) => {
       
       <script>
         console.log('Payment failure page loaded');
-        console.log('Deep link:', '${deepLink}');
+        console.log('Deep link:', '${deepLinkEscaped}');
         
         setTimeout(() => {
           console.log('Attempting to open app...');
-          window.location.href = '${deepLink}';
+          window.location.href = '${deepLinkEscaped}';
         }, 1000);
         
         setTimeout(() => {
@@ -258,7 +264,7 @@ router.get('/payment/failure', (req, res) => {
         }, 3000);
         
         setTimeout(() => {
-          document.getElementById('status').textContent = 'Please tap the button above if the app hasn\\'t opened.';
+          document.getElementById('status').textContent = 'Please tap the button above if the app hasn' + String.fromCharCode(39) + 't opened.';
         }, 5000);
       </script>
     </body>
