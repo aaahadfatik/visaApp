@@ -16,6 +16,7 @@ import fs from 'fs';
 import admin from './firebase';
 import {logger} from './utils/logger'
 import { createPaymentLink, getPaymentStatus } from './service/nomodService';
+import paymentRedirectRoutes from './routes/paymentRedirect';
 
 const userRepository = dataSource.getRepository(User);
 
@@ -35,6 +36,9 @@ app.use('/static', express.static(staticDir));
 if (!fs.existsSync(staticDir)) fs.mkdirSync(staticDir, { recursive: true });
 
 app.use(express.static('public'))
+
+// Payment redirect routes (must be before Apollo middleware)
+app.use(paymentRedirectRoutes);
 
 const schema = makeExecutableSchema({ typeDefs, resolvers: Object.values(resolvers) });
 
