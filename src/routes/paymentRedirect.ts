@@ -4,21 +4,6 @@ import { logger } from '../utils/logger';
 const router = express.Router();
 
 /**
- * HTML escape function to prevent XSS attacks
- */
-function escapeHtml(text: string | number): string {
-  const str = String(text);
-  const map: { [key: string]: string } = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#039;'
-  };
-  return str.replace(/[&<>"']/g, (m) => map[m]);
-}
-
-/**
  * Payment Success Redirect
  * Nomod redirects here after successful payment
  * This page then redirects to the mobile app
@@ -36,11 +21,6 @@ router.get('/payment/success', (req: express.Request, res: express.Response) => 
   const deepLink = `uaevisaapp://payment/success?paymentId=${encodeURIComponent(paymentId)}&status=${encodeURIComponent(status)}`;
   
   logger.info('Redirecting to:', deepLink);
-  
-  // Escape values to prevent XSS
-  const escapedDeepLink = escapeHtml(deepLink);
-  const escapedPaymentId = escapeHtml(paymentId);
-  const escapedStatus = escapeHtml(status);
   
   // Send HTML page with auto-redirect
   res.send(`
@@ -117,7 +97,7 @@ router.get('/payment/success', (req: express.Request, res: express.Response) => 
         <p>Your transaction has been completed.</p>
         <div class="loader"></div>
         <p id="status">Opening UAE Visa App...</p>
-        <a href="${escapedDeepLink}" class="manual-link" id="manual-link" style="display:none;">
+        <a href="${deepLink}" class="manual-link" id="manual-link" style="display:none;">
           Open App Manually
         </a>
       </div>
@@ -157,11 +137,6 @@ router.get('/payment/failure', (req: express.Request, res: express.Response) => 
   const deepLink = `uaevisaapp://payment/failure?paymentId=${encodeURIComponent(paymentId)}&status=${encodeURIComponent(status)}&error=${encodeURIComponent(errorMessage)}`;
   
   logger.info('Redirecting to:', deepLink);
-  
-  // Escape values to prevent XSS
-  const escapedDeepLink = escapeHtml(deepLink);
-  const escapedPaymentId = escapeHtml(paymentId);
-  const escapedErrorMessage = escapeHtml(errorMessage);
   
   res.send(`
     <!DOCTYPE html>
@@ -237,7 +212,7 @@ router.get('/payment/failure', (req: express.Request, res: express.Response) => 
         <p>Your transaction could not be completed.</p>
         <div class="loader"></div>
         <p id="status">Opening UAE Visa App...</p>
-        <a href="${escapedDeepLink}" class="manual-link" id="manual-link" style="display:none;">
+        <a href="${deepLink}" class="manual-link" id="manual-link" style="display:none;">
           Open App Manually
         </a>
       </div>
