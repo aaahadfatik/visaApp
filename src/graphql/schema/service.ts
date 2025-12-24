@@ -164,6 +164,36 @@ input SubmitFormInput {
   documents: [CreateDocumentInput!]
 }
 
+input FormFilter {
+  search: String
+  serviceId: ID
+  status: FormStatus
+  startDate: DateTime
+  endDate: DateTime
+}
+
+type FormSubmissionStatistics {
+  totalSubmissions: Int!
+  completedSubmissions: Int!
+  underProgressSubmissions: Int!
+  rejectedSubmissions: Int!
+  returnModificationSubmissions: Int!
+  }
+
+  type ServiceStatistics {
+    serciveId: ID!
+    title: String!
+    totalApplications: Int!
+  }
+  
+  type SeriveStatisticsReturn {
+    statistics: [ServiceStatistics!]!
+  }
+
+  type ApplicationStatusCount {
+    status: FormStatus!
+    percentage: Float!
+  }
 
 type Query {
   getServices(search:String): [Service!]!
@@ -178,9 +208,13 @@ type Query {
   getForms: [Form]
   getFormByVisaId(visaId: ID!): Form
 
-  getSubmittedForms: [FormSubmission!]!
+  getSubmittedForms(imit:Int,offset:Int,filter:FormFilter): [FormSubmission!]!
   getSubmittedFormById(id: ID!): FormSubmission
   getUserSubmittedForms(userId: ID!): [FormSubmission!]!
+
+  getSubmittedFormsStatistics: FormSubmissionStatistics!
+  getServiceStatistics: SeriveStatisticsReturn!
+  getSubmittedFromAppicationStatusGraph:[ApplicationStatusCount!]!
 }
 
 type Mutation {

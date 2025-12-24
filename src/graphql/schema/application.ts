@@ -61,6 +61,11 @@ input PassengerInput {
   isChild: Boolean
 }
 
+type ApplicationReturn {
+  applications: [Application!]!
+  total: Int
+}
+
 input CreateApplicationInput {
   applicantId: String!
   files: [CreateDocumentInput!]!
@@ -94,9 +99,9 @@ input UpdateApplicationInput {
 }
 
 type Query {
-  getApplication(id: ID!): Application
+  getApplication(id: ID!): ApplicationReturn!
   getApplications(take: Int skip: Int): Application
-  listVisaApplications(applicantId: ID, limit: Int, offset: Int): [Application!]!
+  listVisaApplications(applicantId: ID, limit: Int, offset: Int): ApplicationReturn!
 }
 
 type Mutation {

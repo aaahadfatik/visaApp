@@ -37,6 +37,11 @@ type Document {
   description: String
 }
 
+type DocumentReturn {
+  documents: [Document!]!
+  total: Int
+}
+
 input CreateDocumentInput {
   title: String!
   fileName: String
@@ -55,7 +60,7 @@ input UpdateDocumentInput {
 }
 
 type Query {
-  getDocuments(limit: Int, offset: Int): [Document!]!
+  getDocuments(limit: Int, offset: Int): DocumentReturn!
   getDocument(id: ID!): Document
 }
 

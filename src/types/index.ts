@@ -1,5 +1,5 @@
 import { User, Role } from "../entity";
-import { ApplicationType, ApplicationPriority, AttributeType } from "../enum";
+import { ApplicationType, ApplicationPriority, AttributeType, FormStatus } from "../enum";
 
 declare global {
   namespace Express {
@@ -76,6 +76,12 @@ export interface UpdateUserInput {
   picture: string
   roleId: string
   fcmToken:string
+}
+
+export interface UserFilter {
+  status?: boolean;
+  type?: string;
+  search?: string;
 }
 
 export interface LoginInput {
@@ -248,6 +254,14 @@ export interface SubmitFormInput {
   visaId: string;
   answers: FormAnswerInput[];
   documents: CreateDocumentInput[];
+}
+
+export interface FormFilter {
+  search?: string;
+  serviceId?: string;
+  status?: FormStatus;
+  startDate?: string;
+  endDate?: string;
 }
 
 

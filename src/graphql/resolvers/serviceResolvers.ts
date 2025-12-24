@@ -11,6 +11,7 @@ import {  CreateServiceInput,
   CreateFormInput,
   FormAttributeInput,
   SubmitFormInput,
+  FormFilter,
  } from "types";
 import { AttributeType, FormStatus } from "../../enum"; // Import your enum
 import { ILike } from "typeorm";
@@ -24,6 +25,7 @@ const submissionRepo = dataSource.getRepository(FormSubmission);
 const documentRepo = dataSource.getRepository(Document);
 const notificationRepository = dataSource.getRepository(Notification);
 const userRepository = dataSource.getRepository(User);
+const visaRepository = dataSource.getRepository(Visa);
 
 const serviceResolvers = {
   Query: {
@@ -139,28 +141,101 @@ const serviceResolvers = {
         .getOne();
 
     },
-    getSubmittedForms: async ( _: any, __:any) => {
+    getSubmittedForms: async (
+      _: any,
+      {
+        limit,
+        offset,
+        filter,
+      }: {
+        limit: number;
+        offset: number;
+        filter?: FormFilter;
+      }
+    ) => {
+      if (limit <= 0) {
+        throw new Error("Limit must be greater than 0");
+      }
+      if (offset < 0) {
+        throw new Error("Offset cannot be negative");
+      }
+    
       const submissionRepo = dataSource.getRepository(FormSubmission);
-
-      const submissions = await submissionRepo
-        .createQueryBuilder('submission')
-        .leftJoinAndSelect('submission.form', 'form')
-        .leftJoinAndSelect('submission.visa', 'visa')
-        .leftJoinAndSelect('visa.category', 'category')
-        .leftJoinAndSelect('submission.documents', 'documents')
-        .orderBy('submission.createdAt', 'DESC')
-        .getMany();
-
-        return submissions.map((s) => ({
+    
+      const qb = submissionRepo
+        .createQueryBuilder("submission")
+        .leftJoinAndSelect("submission.form", "form")
+        .leftJoinAndSelect("submission.visa", "visa")
+        .leftJoinAndSelect("visa.category", "category")
+        .leftJoinAndSelect("submission.documents", "documents")
+        .orderBy("submission.createdAt", "DESC")
+        .take(limit)
+        .skip(offset);
+    
+      /* -------------------- Filters -------------------- */
+    
+      if (filter?.status) {
+        qb.andWhere("submission.status = :status", {
+          status: filter.status,
+        });
+      }
+    
+      if (filter?.serviceId) {
+        qb.andWhere("form.serviceId = :serviceId", {
+          serviceId: filter.serviceId,
+        });
+      }
+    
+      if (filter?.startDate || filter?.endDate) {
+        qb.andWhere(
+          `
+          submission.createdAt >= :startDate
+          AND submission.createdAt <= :endDate
+          `,
+          {
+            startDate: filter.startDate
+              ? new Date(filter.startDate)
+              : new Date("1970-01-01"),
+            endDate: filter.endDate
+              ? new Date(filter.endDate)
+              : new Date(),
+          }
+        );
+      }
+    
+      if (filter?.search?.trim()) {
+        const search = `%${filter.search.trim()}%`;
+    
+        qb.andWhere(
+          `
+          (
+            submission.id ILIKE :search
+            OR form.title ILIKE :search
+            OR visa.referenceNumber ILIKE :search
+          )
+          `,
+          { search }
+        );
+      }
+    
+      /* -------------------- Execute -------------------- */
+    
+      const [submissions, totalCount] = await qb.getManyAndCount();
+    
+      return {
+        submissions: submissions.map((s) => ({
           id: s.id,
           formId: s.form.id,
-          status:s.status,
+          status: s.status,
           visa: s.visa || null,
           visaCategory: s.visa?.category?.title || null,
           answers: s.answers,
           createdAt: s.createdAt.toISOString(),
-        }));
+        })),
+        totalCount,
+      };
     },
+    
     getUserSubmittedForms: async ( _: any, {userId}:{userId:string},context:any) => {
       const submissionRepo = dataSource.getRepository(FormSubmission);
       const ctxUser = await authenticate(context)
@@ -194,7 +269,89 @@ const serviceResolvers = {
         answers: submission.answers,
         createdAt: submission.createdAt.toISOString(),
       };
-    }
+    },
+    getSubmittedFormsStatistics: async ( _: any, __:any) => {
+      const submissionRepo = dataSource.getRepository(FormSubmission);
+
+      const [
+        totalSubmissions,
+        completedSubmissions,
+        underProgressSubmissions,
+        rejectedSubmissions,
+        returnModificationSubmissions,
+      ] = await Promise.all([
+        submissionRepo.count(),
+        submissionRepo.count({ where: { status: FormStatus.COMPLETED } }),
+        submissionRepo.count({ where: { status: FormStatus.UNDER_PROGRESS } }),
+        submissionRepo.count({ where: { status: FormStatus.REJECTED } }),
+        submissionRepo.count({ where: { status: FormStatus.RETURN_MODIFICATION } }),
+      ]);
+
+      return {totalSubmissions,completedSubmissions,underProgressSubmissions,rejectedSubmissions,returnModificationSubmissions};
+    },
+    getServiceStatistics: async (_: any, __: any, context: any) => {
+      const statistics = await visaRepository
+        .createQueryBuilder("visa")
+        .leftJoin("visa.submissions", "submission")
+        .select([
+          "visa.id AS serviceId",
+          "visa.title AS title",
+          "COUNT(submission.id) AS totalApplications",
+        ])
+        .groupBy("visa.id")
+        .addGroupBy("visa.title")
+        .orderBy("visa.title", "ASC")
+        .getRawMany();
+    
+      return {
+        statistics: statistics.map((s) => ({
+          serciveId: s.serviceId, // keeping schema typo
+          title: s.title,
+          totalApplications: Number(s.totalApplications),
+        })),
+      };
+    },    
+    getSubmittedFromAppicationStatusGraph: async (_: any, __: any) => {
+      const submissionRepo = dataSource.getRepository(FormSubmission);
+    
+      // 1️⃣ Total submissions
+      const total = await submissionRepo.count();
+    
+      // Edge case: no submissions
+      if (total === 0) {
+        return Object.values(FormStatus).map((status) => ({
+          status,
+          percentage: 0,
+        }));
+      }
+    
+      // 2️⃣ Count per status
+      const rawStats = await submissionRepo
+        .createQueryBuilder("submission")
+        .select("submission.status", "status")
+        .addSelect("COUNT(*)", "count")
+        .groupBy("submission.status")
+        .getRawMany();
+    
+      // Convert to map for easy lookup
+      const statusCountMap = new Map<FormStatus, number>();
+      rawStats.forEach((row) => {
+        statusCountMap.set(row.status, Number(row.count));
+      });
+    
+      // 3️⃣ Calculate percentage for ALL statuses
+      const result = Object.values(FormStatus).map((status) => {
+        const count = statusCountMap.get(status) ?? 0;
+        const percentage = (count / total) * 100;
+    
+        return {
+          status,
+          percentage: Number(percentage.toFixed(2)), // clean decimals
+        };
+      });
+    
+      return result;
+    },    
   },
   Mutation: {
     createService: async (_: any, { input }: { input: CreateServiceInput }, context: any) => {
