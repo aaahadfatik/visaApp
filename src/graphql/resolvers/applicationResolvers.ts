@@ -16,14 +16,14 @@ const applicationResolvers = {
         if (!user) {
             throw new Error('Applicent not found');
         }
-        const applications = await applicationRepository.find({
+        const [applications,total] = await applicationRepository.findAndCount({
             where: { applicant: user },
             relations: ['applicant','files','service'],
             order:{createdAt:'DESC'},
             take: take,
             skip: skip,
         });
-        return applications
+        return {applications,total}
     },
     getApplication: async (_: any, { id }: { id: string }) => {
         return await applicationRepository.findOne({

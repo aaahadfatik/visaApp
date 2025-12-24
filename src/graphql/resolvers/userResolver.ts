@@ -1,13 +1,16 @@
-import { Role, User,Document } from '../../entity';
+import { Role, User,Document, FormSubmission } from '../../entity';
 import { dataSource } from '../../datasource';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { authenticate } from '../../utils/authUtils';
-import { CreateRoleInput, CreateUserInput, UpdateRoleInput, UpdateUserInput } from '../../types';
+import { CreateRoleInput, CreateUserInput, UpdateRoleInput, UpdateUserInput,UserFilter } from '../../types';
+import { FormStatus } from 'enum';
+import { Between } from 'typeorm';
 
 const roleRepository = dataSource.getRepository(Role);
 const userRepository = dataSource.getRepository(User);
 const documentRepository = dataSource.getRepository(Document);
+const submittedFomrRepository = dataSource.getRepository(FormSubmission);
 
 const userResolvers = {
   Query: {
@@ -25,16 +28,92 @@ const userResolvers = {
           relations: ['documents', 'notifications', 'applications'],
         });
     },
-    getUsers: async (_: any, { limit, offset }: { limit: number; offset: number },context: any) => {
-      const users = await userRepository.find({
+    getUsers: async (_: any, { limit, offset,filter }: { limit: number; offset: number,filter:UserFilter },context: any) => {
+      let whereClause: any = {};
+      if (filter) {
+        if (filter.status !== undefined) {
+          whereClause.isActive = filter.status;
+        }
+        if (filter.type !== undefined) {
+          whereClause.isCompany = filter.type;
+        }
+        if (filter.search) {
+          whereClause.name =  dataSource.driver.escape(`%${filter.search}%`);
+        }
+      }
+      const [users,total] = await userRepository.findAndCount({
+        where: whereClause,
         take: limit ,
         skip: offset,
         order:{createdAt:'DESC'},
-        // relations: ['applications','documents'],
+        relations: ['documents', 'notifications', 'applications'],
       });
       if (!users) throw new Error('Users not found');
-      return users;
+      const submittedFromCount = await Promise.all(
+        users.map(async (user) => {
+          const count = await submittedFomrRepository.count({ where: { createdBy: user.id } });
+          return { userId: user.id, count };
+        })
+      )
+      return {users,total};
     },
+    getUserTypesCount: async (_: any, __: any, context: any) => {
+      const companyCount = await userRepository.count({ where: { isCompany: true } });
+      const individualCount = await userRepository.count({ where: { isCompany: false } });
+      return { companyCount, individualCount };
+    },
+    getDashboardStatistics: async (_: any, __: any,) => {
+      const totalUsers = await userRepository.count();
+      const applicationsSubmitted = await submittedFomrRepository.count();
+      const pendingApplications = await submittedFomrRepository.count({ where: { status: FormStatus.UNDER_PROGRESS } });
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const todayApplications = await submittedFomrRepository.count({
+        where: {
+          createdAt: Between(today, tomorrow),
+        },
+      });
+      return { totalUsers, applicationsSubmitted, pendingApplications, todayApplications };
+    },
+    getRegisteredUsersGraph: async (
+      _: any,
+      {
+        startDate,
+        endDate,
+      }: { startDate?: string; endDate?: string }
+    ) => {
+      const userRepo = dataSource.getRepository(User);
+    
+      const from = startDate
+        ? new Date(startDate)
+        : new Date(new Date().getFullYear(), 0, 1); // Jan 1
+    
+      const to = endDate ? new Date(endDate) : new Date();
+    
+      const rawData = await userRepo
+        .createQueryBuilder("user")
+        .select([
+          `TO_CHAR(user.createdAt, 'YYYY-MM') AS month`,
+          `SUM(CASE WHEN user.isCompany = true THEN 1 ELSE 0 END) AS "companyCount"`,
+          `SUM(CASE WHEN user.isCompany = false THEN 1 ELSE 0 END) AS "individualCount"`,
+        ])
+        .where("user.createdAt BETWEEN :from AND :to", { from, to })
+        .groupBy("month")
+        .orderBy("month", "ASC")
+        .getRawMany();
+    
+      return {
+        fromDate: from.toISOString(),
+        toDate: to.toISOString(),
+        data: rawData.map((r) => ({
+          month: r.month,
+          companyCount: Number(r.companyCount),
+          individualCount: Number(r.individualCount),
+        })),
+      };
+    },    
   },
   Mutation: {
     createRole:  async (_:any,{input}:{input:CreateRoleInput})=>{
@@ -214,6 +293,15 @@ const userResolvers = {
       }catch(error){
         throw Error(`error on updating User ${error}`)
       }
+    },
+    deleteUser: async (_: any, { id }: { id: string }, context: any) => {
+      const user = await userRepository.findOne({ where: { id } });
+      if (!user) {
+        throw new Error('User not found');
+      }
+      user.isDeleted = true;
+      await userRepository.save(user);
+      return true;
     },
     refreshToken: async (_: any, { token }: { token: string }) => {
       if (!token) throw new Error('No token provided');

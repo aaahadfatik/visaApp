@@ -10,12 +10,13 @@ const documentResolver = {
   Query: {
     getDocuments: async (_: any, { limit, offset }: { limit: number; offset: number }) => {
       const documentRepo = dataSource.getRepository(Document);
-      return await documentRepo.find({
+      const [documents,total] =  await documentRepo.findAndCount({
         take: limit,
         skip: offset,
         order: { createdAt: 'DESC' },
         relations: ['uploadedBy'],
       });
+      return {documents,total}
     },
     getDocument: async (_: any, { id }: { id: string }) => {
       const documentRepo = dataSource.getRepository(Document);
