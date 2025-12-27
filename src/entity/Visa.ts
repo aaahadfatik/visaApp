@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, ManyToOne, OneToOne
 import Category from "./Category";
 import Form from "./Form";
 import FormSubmission from "./FormSubmission";
+import Service from "./Service";
 
 @Entity()
 export default class Visa extends BaseEntity {
@@ -26,7 +27,7 @@ export default class Visa extends BaseEntity {
   @Column("text", { array: true, nullable: true })
   info!: string[]; 
 
-  @ManyToOne(() => Category, (category) => category.visas, { nullable: false, onDelete: "CASCADE" })
+  @ManyToOne(() => Category, (category) => category.visas, { nullable: true, onDelete: "CASCADE" })
   category!: Category;
 
   @OneToOne(() => Form, (form) => form.visa)
@@ -34,4 +35,7 @@ export default class Visa extends BaseEntity {
 
   @OneToMany(() => FormSubmission, (submission) => submission.visa)
   submissions!: FormSubmission[];
+
+  @ManyToOne(() => Service, (service) => service.visas, { nullable: true, onDelete: "CASCADE" })
+  service?: Service;
 }

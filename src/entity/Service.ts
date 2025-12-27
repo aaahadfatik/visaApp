@@ -1,5 +1,6 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany, ManyToOne, Generated, ManyToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import BaseEntity from './BaseEntity';
+import Visa from './Visa';
 import Category from './Category';
 
 @Entity()
@@ -13,24 +14,15 @@ export default class Service extends BaseEntity {
   @Column({ default: false })
   isForSale!: boolean;
 
+  @Column("text",{nullable:true})
+  description!: string;
+
+  @Column("text",{nullable:true})
+  imageUrl!: string;
+
   @OneToMany(() => Category, (category) => category.service)
   categories!: Category[];
 
-  // @Column("text")
-  // description!: string;
-
-  // @Column({ type: "float", default: 0 })
-  // price!: number;
-
-  // @Column({ default: false })
-  // isFeature!: boolean;
-
-  // @Column({ nullable: true })
-  // imageUrl?: string;
-
-  // @Column({ default: 0 })
-  // salesCount!: number;
-
-  // @OneToMany(() => Application, (app) => app.service)
-  // applications!: Application[];
+  @OneToMany(() => Visa, (visa) => visa.service)
+  visas!: Visa[];
 }

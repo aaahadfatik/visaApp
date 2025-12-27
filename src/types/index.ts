@@ -182,6 +182,8 @@ export interface UpdateApplicationInput {
 export interface CreateServiceInput {
   title: string;
   isForSale?: boolean;
+  imageUrl?: string;
+  description?: string;
   categoryIds?: string[];
 }
 
@@ -189,6 +191,8 @@ export interface UpdateServiceInput {
   id: string;
   title?: string;
   isForSale?: boolean;
+  imageUrl?: string;
+  description?: string;
   categoryIds?: string[];
 }
 

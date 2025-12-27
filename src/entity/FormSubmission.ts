@@ -13,6 +13,7 @@ import Document from "./Document";
 import { FormStatus } from "../enum";
 import Visa from "./Visa";
 import Payment from "./Payment";
+import Category from "./Category";
   
 @Entity()
 export default class FormSubmission extends BaseEntity {
@@ -31,6 +32,14 @@ export default class FormSubmission extends BaseEntity {
   @Column({type: 'enum', enum: FormStatus,nullable: true})
   status!: FormStatus
 
+
+  @Column({ type: 'text', nullable: true })
+  reasonForReturn?: string;  
+
+
+  @Column({type: 'text', nullable: true })
+  reasonForRejection?: string;  
+
   @ManyToOne(() => Visa, (visa) => visa.submissions, { nullable: true, onDelete: "CASCADE" })
   @JoinColumn({ name: 'visaId' })        
   visa!: Visa;
@@ -47,5 +56,11 @@ export default class FormSubmission extends BaseEntity {
   
   @Column({ name: "paymentId", type: "uuid", nullable: true })
   paymentId?: string;
+
+  @ManyToOne(() => Category, (category) => category.submissions, { nullable: true, onDelete: "CASCADE" })
+  category!: Category;
+
+  @Column({ name: 'categoryId', type: 'uuid', nullable: true })
+  categoryId?: string;
 }
   

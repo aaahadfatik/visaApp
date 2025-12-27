@@ -26,15 +26,25 @@ type Service {
   id: ID!
   title: String!
   isForSale: Boolean!
-  categories: [Category!]!
+  imageUrl: String
+  description: String
+  categories: [Category!]
+  visas: [Visa!]
 }
 
 type Category {
   id: ID!
   title: String!
+  vipPrice: Float
+  vvipPrice: Float
+  normalPrice: Float
+  description: [String!]
+  info: [String!]
   isForSale: Boolean!
   service: Service!
   visas: [Visa!]!
+  form:Form
+  submissions: [FormSubmission!]
 }
 
 type Visa {
@@ -45,14 +55,18 @@ type Visa {
   normalPrice: Float!
   description: [String!]
   info: [String!]
-  category: Category!
+  category: Category
   form: Form
   submissions: [FormSubmission!]
+  service: Service
 }
 
 type Form {
   id: ID!
   attributes: [FormAttribute!]!
+  visa:Visa
+  submissions: [FormSubmission!]
+  category:Category
 }
 
 type FormAttribute {
@@ -75,9 +89,13 @@ type FormSubmission {
   documents: [Document!]
   status: FormStatus
   visa: Visa
+  reasonForReturn: String
+  reasonForRejection: String
   createdAt: DateTime
   updatedAt: DateTime
+  createdBy: User
   payment: Payment
+  category: Category
 }
 
 type FormAnswer {
@@ -89,17 +107,26 @@ type FormAnswer {
 input CreateServiceInput {
   title: String!
   isForSale: Boolean
+  imageUrl: String
+  description: String
 }
 
 input UpdateServiceInput {
   id: ID!
   title: String
   isForSale: Boolean
+  imageUrl: String
+  description: String
 }
 
 input CreateCategoryInput {
   title: String!
   isForSale: Boolean
+  vipPrice: Float
+  vvipPrice: Float
+  normalPrice: Float
+  description: [String!]
+  info: [String!]
   serviceId: ID!
 }
 
@@ -118,6 +145,7 @@ input CreateVisaInput {
   categoryId: ID!
   description: [String!]
   info: [String!]
+  serviceId: ID
 }
 
 input UpdateVisaInput {
@@ -129,6 +157,7 @@ input UpdateVisaInput {
   categoryId: ID
   description: [String!]
   info: [String!]
+  serviceId: ID
 }
 
 input FormAttributeInput {
@@ -147,6 +176,7 @@ input CreateFormInput {
   visaId: ID!
   attributes: [FormAttributeInput!]!
   documents: [CreateDocumentInput!]
+  categoryId: String
 
 }
 
@@ -195,6 +225,11 @@ type FormSubmissionStatistics {
     percentage: Float!
   }
 
+  type FormSubmissionReturn {
+    submissions: [FormSubmission!]!
+    total: Int!
+  }
+
 type Query {
   getServices(search:String): [Service!]!
   getServiceById(id: ID!): Service
@@ -208,13 +243,13 @@ type Query {
   getForms: [Form]
   getFormByVisaId(visaId: ID!): Form
 
-  getSubmittedForms(imit:Int,offset:Int,filter:FormFilter): [FormSubmission!]!
+  getSubmittedForms(limit:Int,offset:Int,filter:FormFilter): FormSubmissionReturn!
   getSubmittedFormById(id: ID!): FormSubmission
   getUserSubmittedForms(userId: ID!): [FormSubmission!]!
 
   getSubmittedFormsStatistics: FormSubmissionStatistics!
-  getServiceStatistics: SeriveStatisticsReturn!
-  getSubmittedFromAppicationStatusGraph:[ApplicationStatusCount!]!
+  getServiceStatistics(year:String): SeriveStatisticsReturn!
+  getSubmittedFromAppicationStatusGraph(year:String):[ApplicationStatusCount!]!
 }
 
 type Mutation {
@@ -226,11 +261,12 @@ type Mutation {
 
   createVisa(input: CreateVisaInput!): Visa!
   updateVisa(input: UpdateVisaInput!): Visa!
+  deleteVisa(id: ID!): Boolean!
 
   createForm(input: CreateFormInput!): Form!
 
   submitForm(input: SubmitFormInput!): FormSubmission!
-  updateFormSubmissionStatus(id: ID!, status: FormStatus,paymentId:ID): FormSubmission!
+  updateFormSubmissionStatus(id: ID!, status: FormStatus,paymentId:ID reasonForReturn: String reasonForRejection: String): FormSubmission!
 }
 `;
 
