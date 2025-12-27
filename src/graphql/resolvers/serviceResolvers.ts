@@ -28,6 +28,19 @@ const userRepository = dataSource.getRepository(User);
 const visaRepository = dataSource.getRepository(Visa);
 
 const serviceResolvers = {
+  FormSubmission: {
+    createdBy: async (
+      parent: { createdBy?: string },
+      _: any,
+    ) => {
+      if (!parent.createdBy) return null;
+      return userRepository.findOne({
+        where: { id: parent.createdBy },
+      });
+    },
+  },
+  
+  
   Query: {
     getServices: async (_: any, { search }: { search: string }) => {
       const services = await serviceRepo.find({
@@ -231,8 +244,9 @@ const serviceResolvers = {
           visaCategory: s.visa?.category?.title || null,
           answers: s.answers,
           createdAt: s.createdAt.toISOString(),
+          createdBy: s.createdBy,
         })),
-        totalCount,
+        total:totalCount,
       };
     },
     
@@ -260,7 +274,10 @@ const serviceResolvers = {
         }));
     },
     getSubmittedFormById: async (_: any, { id }: { id: string }) => {
-      const submission = await submissionRepo.findOne({ where: { form:{id} }, relations: ["form"] });
+      const submission = await submissionRepo.findOne({ 
+        where: { id }, 
+        relations: ["form","visa","documents","payment"] 
+      });
       if (!submission) throw new Error("Submission not found");
 
       return {
@@ -289,10 +306,19 @@ const serviceResolvers = {
 
       return {totalSubmissions,completedSubmissions,underProgressSubmissions,rejectedSubmissions,returnModificationSubmissions};
     },
-    getServiceStatistics: async (_: any, __: any, context: any) => {
-      const statistics = await visaRepository
-        .createQueryBuilder("visa")
-        .leftJoin("visa.submissions", "submission")
+    getServiceStatistics: async (_: any, {year}:{year?:string}) => {
+      const query = visaRepository
+      .createQueryBuilder("visa")
+      .leftJoin("visa.submissions", "submission");
+
+      // Apply year filter if provided
+      if (year) {
+        const start = new Date(`${year}-01-01T00:00:00.000Z`);
+        const end = new Date(`${year}-12-31T23:59:59.999Z`);
+        query.where("submission.createdAt >= :start AND submission.createdAt <= :end", { start, end });
+      }
+
+      const statistics = await query
         .select([
           "visa.id AS serviceId",
           "visa.title AS title",
@@ -302,7 +328,7 @@ const serviceResolvers = {
         .addGroupBy("visa.title")
         .orderBy("visa.title", "ASC")
         .getRawMany();
-    
+
       return {
         statistics: statistics.map((s) => ({
           serciveId: s.serviceId, // keeping schema typo
@@ -311,11 +337,24 @@ const serviceResolvers = {
         })),
       };
     },    
-    getSubmittedFromAppicationStatusGraph: async (_: any, __: any) => {
+    getSubmittedFromAppicationStatusGraph: async (_: any, {year}:{year?:string}) => {
       const submissionRepo = dataSource.getRepository(FormSubmission);
     
+      // 1️⃣ Build base query
+      let query = submissionRepo.createQueryBuilder("submission");
+
+      // 2️⃣ Apply year filter if provided
+      if (year) {
+        const start = new Date(`${year}-01-01T00:00:00.000Z`);
+        const end = new Date(`${year}-12-31T23:59:59.999Z`);
+        query = query.where("submission.createdAt >= :start AND submission.createdAt <= :end", {
+          start,
+          end,
+        });
+      }
+
       // 1️⃣ Total submissions
-      const total = await submissionRepo.count();
+      const total = await query.getCount();
     
       // Edge case: no submissions
       if (total === 0) {
@@ -326,8 +365,7 @@ const serviceResolvers = {
       }
     
       // 2️⃣ Count per status
-      const rawStats = await submissionRepo
-        .createQueryBuilder("submission")
+      const rawStats = await query
         .select("submission.status", "status")
         .addSelect("COUNT(*)", "count")
         .groupBy("submission.status")
@@ -569,7 +607,7 @@ const serviceResolvers = {
 
       return await submissionRepo.save(submission);
     },
-    updateFormSubmissionStatus: async( _: any, { submissionId,status,paymentId }: { submissionId: string ,status:FormStatus,paymentId:string},context:any) => {
+    updateFormSubmissionStatus: async( _: any, { submissionId,status,paymentId,reasonForReturn ,reasonForRejection}: { submissionId: string ,status:FormStatus,paymentId:string,reasonForRejection:string,reasonForReturn:string},context:any) => {
       const ctxUser = await authenticate(context);
       if (!ctxUser) {
         throw new Error("Unauthorized access");
@@ -587,6 +625,16 @@ const serviceResolvers = {
         submission.status = status;
         submission.updatedBy = ctxUser.userId;
       }
+      if(reasonForReturn){
+        submission.reasonForReturn =reasonForReturn
+        submission.updatedBy = ctxUser.userId;
+      }
+
+      if(reasonForRejection){
+        submission.reasonForRejection =reasonForRejection
+        submission.updatedBy = ctxUser.userId;
+      }
+
 
       return await submissionRepo.save(submission);
     }

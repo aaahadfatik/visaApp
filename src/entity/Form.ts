@@ -2,13 +2,14 @@ import { Entity, PrimaryGeneratedColumn, Column, BaseEntity, OneToOne, JoinColum
 import Visa from "./Visa";
 import FormAttribute from "./FormAttribute";
 import  FormSubmission  from "./FormSubmission";
+import Category from "./Category";
 
 @Entity()
 export default class Form extends BaseEntity {
   @PrimaryGeneratedColumn("uuid")
   id!: string;
 
-  @OneToOne(() => Visa, (visa) => visa.form, { onDelete: "CASCADE" })
+  @OneToOne(() => Visa, (visa) => visa.form, { onDelete: "CASCADE",nullable:true })
   @JoinColumn()
   visa!: Visa;
 
@@ -17,4 +18,8 @@ export default class Form extends BaseEntity {
 
   @OneToMany(() => FormSubmission, (submission) => submission.form)
   submissions!: FormSubmission[];
+
+  @OneToOne(() => Visa, (visa) => visa.form, { onDelete: "CASCADE", nullable:true})
+  @JoinColumn()
+  category!: Category;
 }

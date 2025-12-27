@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { authenticate } from '../../utils/authUtils';
 import { CreateRoleInput, CreateUserInput, UpdateRoleInput, UpdateUserInput,UserFilter } from '../../types';
-import { FormStatus } from 'enum';
+import { FormStatus } from '../../enum';
 import { Between } from 'typeorm';
 
 const roleRepository = dataSource.getRepository(Role);
@@ -49,13 +49,20 @@ const userResolvers = {
         relations: ['documents', 'notifications', 'applications'],
       });
       if (!users) throw new Error('Users not found');
-      const submittedFromCount = await Promise.all(
+      const usersWithCounts = await Promise.all(
         users.map(async (user) => {
-          const count = await submittedFomrRepository.count({ where: { createdBy: user.id } });
-          return { userId: user.id, count };
+          const submittedFromCount = await submittedFomrRepository.count({
+            where: { createdBy: user.id },
+          });
+    
+          return {
+            ...user,
+            submittedFromCount,
+          };
         })
-      )
-      return {users,total};
+      );
+    
+      return {users:usersWithCounts,total};
     },
     getUserTypesCount: async (_: any, __: any, context: any) => {
       const companyCount = await userRepository.count({ where: { isCompany: true } });
@@ -77,42 +84,29 @@ const userResolvers = {
       });
       return { totalUsers, applicationsSubmitted, pendingApplications, todayApplications };
     },
-    getRegisteredUsersGraph: async (
-      _: any,
-      {
-        startDate,
-        endDate,
-      }: { startDate?: string; endDate?: string }
+    getRegisteredUsersGraph: async ( _: any, { year,}: { year?: string }
     ) => {
       const userRepo = dataSource.getRepository(User);
-    
-      const from = startDate
-        ? new Date(startDate)
-        : new Date(new Date().getFullYear(), 0, 1); // Jan 1
-    
-      const to = endDate ? new Date(endDate) : new Date();
-    
-      const rawData = await userRepo
-        .createQueryBuilder("user")
-        .select([
-          `TO_CHAR(user.createdAt, 'YYYY-MM') AS month`,
-          `SUM(CASE WHEN user.isCompany = true THEN 1 ELSE 0 END) AS "companyCount"`,
-          `SUM(CASE WHEN user.isCompany = false THEN 1 ELSE 0 END) AS "individualCount"`,
-        ])
-        .where("user.createdAt BETWEEN :from AND :to", { from, to })
-        .groupBy("month")
-        .orderBy("month", "ASC")
-        .getRawMany();
-    
-      return {
-        fromDate: from.toISOString(),
-        toDate: to.toISOString(),
-        data: rawData.map((r) => ({
-          month: r.month,
-          companyCount: Number(r.companyCount),
-          individualCount: Number(r.individualCount),
-        })),
-      };
+      const currentYear = year ? parseInt(year, 10) : new Date().getFullYear();
+      const data: { companyCount: number; individualCount: number }[] = [];
+      for (let month = 0; month < 12; month++) {
+        const startDate = new Date(currentYear, month, 1);
+        const endDate = new Date(currentYear, month + 1, 1);
+        const companyCount = await userRepo.count({
+          where: {
+            isCompany: true,
+            createdAt: Between(startDate, endDate),
+          },
+        });
+        const individualCount = await userRepo.count({
+          where: {
+            isCompany: false,
+            createdAt: Between(startDate, endDate),
+          },
+        });
+        data.push({ companyCount, individualCount });
+      }
+      return { year: currentYear.toString(), data}
     },    
   },
   Mutation: {
@@ -301,6 +295,25 @@ const userResolvers = {
       }
       user.isDeleted = true;
       await userRepository.save(user);
+      return true;
+    },
+    changePassword: async (_: any, { oldPassword, newPassword }: { oldPassword: string; newPassword: string }, context: any) => {
+      const authUser = await authenticate(context);
+      const user = await userRepository.findOne({ where: { id: authUser.userId } });
+      if (!user) throw new Error('User not found');
+
+      // Validate old password
+      const validPassword = await bcrypt.compare(oldPassword, user.password);
+      if (!validPassword) throw new Error('Old password is incorrect');
+
+      // Hash new password
+      const saltRounds = 10;
+      const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+
+      // Update user's password
+      user.password = hashedNewPassword;
+      await userRepository.save(user);
+
       return true;
     },
     refreshToken: async (_: any, { token }: { token: string }) => {

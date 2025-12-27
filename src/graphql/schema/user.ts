@@ -38,7 +38,7 @@ type User {
   applications: [Application!]
   fcmToken: String
   createdAt: DateTime!
-  applicationsCount: Int!
+  submittedFromCount: Int!
 }
 
 input CreateRoleInput {
@@ -135,14 +135,12 @@ type DashboardStatisticsReturn {
 }
 
 type RegisteredUsersGraphItem {
-  month: String!       # e.g. "2025-01"
   companyCount: Int!
   individualCount: Int!
 }
 
 type RegisteredUsersGraphReturn {
-  fromDate: String!
-  toDate: String!
+  year:String!
   data: [RegisteredUsersGraphItem!]!
 }
 
@@ -153,7 +151,7 @@ type Query {
   getUsers(limit: Int, offset: Int, filter:UserFilter): UserReturn!
   getUserTypesCount: UserTypeReturn!
   getDashboardStatistics: DashboardStatisticsReturn!
-  getRegisteredUsersGraph( startDate: String endDate: String): RegisteredUsersGraphReturn!
+  getRegisteredUsersGraph(year:String): RegisteredUsersGraphReturn!
 }
 
 type Mutation {
@@ -166,6 +164,7 @@ type Mutation {
   createUser(input: UserInput!): User!
   updateUser(input: UpdateUserInput!): User!
   deleteUser(id: ID!): Boolean!
+  changePassword(oldPassword: String! newPassword: String!): Boolean!
 
   generateClientAccountNumber: String
   refreshToken(token: String!): AuthResponse
