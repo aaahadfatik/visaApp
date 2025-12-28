@@ -1,5 +1,10 @@
 import { User, Role } from "../entity";
-import { ApplicationType, ApplicationPriority, AttributeType, FormStatus } from "../enum";
+import {
+  ApplicationType,
+  ApplicationPriority,
+  AttributeType,
+  FormStatus,
+} from "../enum";
 
 declare global {
   namespace Express {
@@ -10,72 +15,72 @@ declare global {
 }
 
 export interface CreateRoleInput {
-  name: string
-  isReadOrder: boolean
-  isManageOrder: boolean
-  isReadMenu: boolean
-  isManageMenu: boolean
-  isManageIngredients: boolean
-  isManageCosts: boolean
-  isManageBranch: boolean
-  isManageCoupons: boolean
-  isManageDevices: boolean
-  isManageDiscounts: boolean
-  isManageGiftCards: boolean
+  name: string;
+  isReadOrder: boolean;
+  isManageOrder: boolean;
+  isReadMenu: boolean;
+  isManageMenu: boolean;
+  isManageIngredients: boolean;
+  isManageCosts: boolean;
+  isManageBranch: boolean;
+  isManageCoupons: boolean;
+  isManageDevices: boolean;
+  isManageDiscounts: boolean;
+  isManageGiftCards: boolean;
 }
 
 export interface UpdateRoleInput {
-  id:string;
-  name: string
-  isReadOrder: boolean
-  isManageOrder: boolean
-  isReadMenu: boolean
-  isManageMenu: boolean
-  isManageIngredients: boolean
-  isManageCosts: boolean
-  isManageBranch: boolean
-  isManageCoupons: boolean
-  isManageDevices: boolean
-  isManageDiscounts: boolean
-  isManageGiftCards: boolean
+  id: string;
+  name: string;
+  isReadOrder: boolean;
+  isManageOrder: boolean;
+  isReadMenu: boolean;
+  isManageMenu: boolean;
+  isManageIngredients: boolean;
+  isManageCosts: boolean;
+  isManageBranch: boolean;
+  isManageCoupons: boolean;
+  isManageDevices: boolean;
+  isManageDiscounts: boolean;
+  isManageGiftCards: boolean;
 }
 
 export interface CreateUserInput {
-  name: string
-  organizationName: string
-  position: string
-  phone: string
-  email: string
-  password: string
-  picture: string
-  otp:number
-  isCompany: boolean
-  isActive: boolean
-  isProfileCompleted: boolean
-  lastLoginDate: string
-  refreshToken: string
-  roleId: string
-  fcmToken?:string
-  documents: [CreateDocumentInput]
+  name: string;
+  organizationName: string;
+  position: string;
+  phone: string;
+  email: string;
+  password: string;
+  picture: string;
+  otp: number;
+  isCompany: boolean;
+  isActive: boolean;
+  isProfileCompleted: boolean;
+  lastLoginDate: string;
+  refreshToken: string;
+  roleId: string;
+  fcmToken?: string;
+  documents: [CreateDocumentInput];
 }
 
 export interface UpdateUserInput {
-  id:string;
-  name: string
-  organizationName: string
-  position: string
-  phone: string
-  email: string
-  password: string
-  otp:number
-  isCompany: boolean
-  isActive: boolean
-  isProfileCompleted: boolean
-  lastLoginDate: string
-  refreshToken: string
-  picture: string
-  roleId: string
-  fcmToken:string
+  id: string;
+  name: string;
+  organizationName: string;
+  position: string;
+  phone: string;
+  email: string;
+  password: string;
+  otp: number;
+  isCompany: boolean;
+  isActive: boolean;
+  isProfileCompleted: boolean;
+  lastLoginDate: string;
+  refreshToken: string;
+  picture: string;
+  roleId: string;
+  fcmToken: string;
 }
 
 export interface UserFilter {
@@ -91,7 +96,7 @@ export interface LoginInput {
 
 export interface Decoded {
   userId: string;
-  role: Role; 
+  role: Role;
   pin: number;
   branchId?: string;
 }
@@ -101,82 +106,82 @@ export interface PermissionRequirements {
 }
 
 export interface CreateDocumentInput {
-  title: string
-  fileName: string
-  fileType: string
-  filePath: string
-  description?: string
+  title: string;
+  fileName: string;
+  fileType: string;
+  filePath: string;
+  description?: string;
 }
 export interface UpdateDocumentInput {
-  id:string;
-  title: string
-  fileName: string
-  fileType: string
-  filePath: string
-  description?: string
+  id: string;
+  title: string;
+  fileName: string;
+  fileType: string;
+  filePath: string;
+  description?: string;
 }
 export interface CreateNotificationInput {
-  title: string
-  description: string
-  type: string
-  userId: string
-  applicationId: string
-  isRead: boolean
-  isDeleted: boolean
-  createdBy: string
-  updatedBy: string
-  createdAt: Date
-  updatedAt: Date
+  title: string;
+  description: string;
+  type: string;
+  userId: string;
+  applicationId: string;
+  isRead: boolean;
+  isDeleted: boolean;
+  createdBy: string;
+  updatedBy: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 export interface UpdateNotificationInput {
-  id:string;
-  title: string
-  description: string
-  type: string
-  userId: string
-  applicationId: string
-  isRead: boolean
-  isDeleted: boolean
-  createdBy: string
-  updatedBy: string
-  createdAt: Date
-  updatedAt: Date
+  id: string;
+  title: string;
+  description: string;
+  type: string;
+  userId: string;
+  applicationId: string;
+  isRead: boolean;
+  isDeleted: boolean;
+  createdBy: string;
+  updatedBy: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 export interface PassengerInput {
   name: string;
   dob: string;
-  isChild?: boolean; 
+  isChild?: boolean;
 }
 export interface CreateApplicationInput {
-  applicantId: string
-  files: CreateDocumentInput[]
-  visaType: string
-  sponsorName: string
-  sponsorNumber: string
-  whatsappNumber: string
-  uidNumber: string
-  address: string
-  comments: string
-  accountNumber: string
-  applicationPriority: ApplicationPriority
-  applicationType: ApplicationType
-  serviceId?: string
+  applicantId: string;
+  files: CreateDocumentInput[];
+  visaType: string;
+  sponsorName: string;
+  sponsorNumber: string;
+  whatsappNumber: string;
+  uidNumber: string;
+  address: string;
+  comments: string;
+  accountNumber: string;
+  applicationPriority: ApplicationPriority;
+  applicationType: ApplicationType;
+  serviceId?: string;
   passengerCount: number;
   passengers: PassengerInput[];
 }
 
 export interface UpdateApplicationInput {
-  id: string
-  visaType: string
-  sponsorName: string
-  sponsorNumber: string
-  whatsappNumber: string
-  uidNumber: string
-  address: string
-  comments: string
-  accountNumber: string
-  applicationPriority: ApplicationPriority
-  applicationType: ApplicationType
+  id: string;
+  visaType: string;
+  sponsorName: string;
+  sponsorNumber: string;
+  whatsappNumber: string;
+  uidNumber: string;
+  address: string;
+  comments: string;
+  accountNumber: string;
+  applicationPriority: ApplicationPriority;
+  applicationType: ApplicationType;
 }
 
 export interface CreateServiceInput {
@@ -215,7 +220,7 @@ export interface CreateVisaInput {
   vvipPrice: number;
   normalPrice: number;
   categoryId: string;
-  description?: string[]; 
+  description?: string[];
   info?: string[];
 }
 
@@ -226,7 +231,7 @@ export interface UpdateVisaInput {
   vvipPrice?: number;
   normalPrice?: number;
   categoryId?: string;
-  description?: string[]; 
+  description?: string[];
   info?: string[];
 }
 
@@ -244,7 +249,7 @@ export interface FormAttributeInput {
   required: boolean;
   multiple: boolean;
   options?: string[]; // for dropdowns
-  children: FormAttributeInput[]
+  children: FormAttributeInput[];
 }
 
 export interface FormAnswerInput {
@@ -268,14 +273,13 @@ export interface FormFilter {
   endDate?: string;
 }
 
-
-export type FormAttributeType = 'FIELD' | 'DOCUMENT';
+export type FormAttributeType = "FIELD" | "DOCUMENT";
 
 export interface NotificationFilter {
-search?:string;
-isRead?: boolean;
-startDate?:string;
-endDate?:string;
- page?: number;
- limit?: number;
+  search?: string;
+  isRead?: boolean;
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  limit?: number;
 }
