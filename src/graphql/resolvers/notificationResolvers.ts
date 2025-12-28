@@ -56,8 +56,17 @@ const notificationResolvers = {
             end: new Date(filter.endDate),
           });
         }
-      
-        const [notifications, total] = await query.getManyAndCount();
+
+        // Pagination
+        const page = Math.max(1, (filter && Number(filter.page)) || 1);
+        const limit = Math.min(100, (filter && Number(filter.limit)) || 10);
+        const skip = (page - 1) * limit;
+
+        // getCount() for total matching rows (ignores pagination)
+        const total = await query.getCount();
+
+        // apply pagination and fetch rows
+        const notifications = await query.skip(skip).take(limit).getMany();
 
         return {
           notifications,
