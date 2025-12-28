@@ -306,23 +306,26 @@ const serviceResolvers = {
 
       return {totalSubmissions,completedSubmissions,underProgressSubmissions,rejectedSubmissions,returnModificationSubmissions};
     },
-    getServiceStatistics: async (_: any, {year}:{year?:string}) => {
+    getServiceStatistics: async (_: any, { year }: { year?: string }) => {
       const query = visaRepository
-      .createQueryBuilder("visa")
-      .leftJoin("visa.submissions", "submission");
-
-      // Apply year filter if provided
+        .createQueryBuilder("visa")
+        .leftJoin("visa.submissions", "submission");
+    
       if (year) {
         const start = new Date(`${year}-01-01T00:00:00.000Z`);
         const end = new Date(`${year}-12-31T23:59:59.999Z`);
-        query.where("submission.createdAt >= :start AND submission.createdAt <= :end", { start, end });
+    
+        query.andWhere(
+          "submission.createdAt IS NULL OR submission.createdAt BETWEEN :start AND :end",
+          { start, end }
+        );
       }
-
+    
       const statistics = await query
         .select([
-          "visa.id AS serviceId",
+          "visa.id AS serviceid",
           "visa.title AS title",
-          "COUNT(submission.id) AS totalApplications",
+          "COUNT(submission.id) AS totalapplications",
         ])
         .groupBy("visa.id")
         .addGroupBy("visa.title")
@@ -331,14 +334,13 @@ const serviceResolvers = {
 
       return {
         statistics: statistics.map((s) => ({
-          serciveId: s.serviceId, // keeping schema typo
+          serciveId: s.serviceid, // schema typo preserved
           title: s.title,
-          totalApplications: Number(s.totalApplications),
+          totalApplications: Number(s.totalapplications),
         })),
       };
     },    
     getSubmittedFromAppicationStatusGraph: async (_: any, {year}:{year?:string}) => {
-      const submissionRepo = dataSource.getRepository(FormSubmission);
     
       // 1️⃣ Build base query
       let query = submissionRepo.createQueryBuilder("submission");

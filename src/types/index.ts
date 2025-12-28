@@ -270,3 +270,10 @@ export interface FormFilter {
 
 
 export type FormAttributeType = 'FIELD' | 'DOCUMENT';
+
+export interface NotificationFilter {
+search?:string;
+isRead?: boolean;
+startDate?:string;
+endDate?:string;
+}
