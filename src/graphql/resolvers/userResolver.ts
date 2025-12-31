@@ -87,6 +87,7 @@ const userResolvers = {
       });
       return { companyCount, individualCount };
     },
+
     getDashboardStatistics: async (_: any, __: any) => {
       const totalUsers = await userRepository.count();
       const applicationsSubmitted = await submittedFomrRepository.count();
