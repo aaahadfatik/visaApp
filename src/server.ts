@@ -1,22 +1,23 @@
-import { ApolloServer } from "apollo-server-express";
-import { typeDefs } from "./graphql/typeDefs";
-import * as resolvers from "./graphql/resolvers";
-import { dataSource } from "./datasource"; // Import the correct dataSource
-import { verifyToken } from "./utils/authUtils";
-import express from "express";
-import { User } from "./entity";
-import { execute, subscribe } from "graphql";
-import { makeExecutableSchema } from "@graphql-tools/schema";
-import { SubscriptionServer } from "subscriptions-transport-ws";
-import { PubSub } from "graphql-subscriptions";
-import { createServer } from "http";
-import multer from "multer";
-import path from "path";
-import fs from "fs";
-import admin from "./firebase";
-import { logger } from "./utils/logger";
-import { createPaymentLink, getPaymentStatus } from "./service/nomodService";
-import paymentRedirectRoutes from "./routes/paymentRedirect";
+import { ApolloServer } from 'apollo-server-express';
+import { typeDefs } from './graphql/typeDefs';
+import * as resolvers from './graphql/resolvers';
+import { dataSource } from './datasource'; // Import the correct dataSource
+import { verifyToken } from './utils/authUtils';
+import express from 'express';
+import { Role, User } from './entity';
+import { execute, subscribe } from 'graphql';
+import { makeExecutableSchema } from '@graphql-tools/schema'; 
+import { SubscriptionServer } from 'subscriptions-transport-ws';
+import { PubSub } from 'graphql-subscriptions';
+import { createServer } from 'http';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import admin from './firebase';
+import {logger} from './utils/logger'
+import { createPaymentLink, getPaymentStatus } from './service/nomodService';
+import paymentRedirectRoutes from './routes/paymentRedirect';
+import bcrypt from "bcrypt";
 
 const userRepository = dataSource.getRepository(User);
 
@@ -293,23 +294,63 @@ dataSource
     // Start Apollo Server
     await server.start();
 
+    // 🚀 SEED DEFAULT ROLE + ADMIN USER
+    const roleRepository = dataSource.getRepository(Role);
+    const userRepository = dataSource.getRepository(User);
+
+    // 1️⃣ Ensure "ADMIN" role exists
+    let adminRole = await roleRepository.findOne({
+      where: { name: "Super Admin" },
+    });
+    if (!adminRole) {
+      adminRole = roleRepository.create({
+        name: "Super Admin",
+      });
+      await roleRepository.save(adminRole);
+    }
+    let cutomerRole = await roleRepository.findOne({
+      where: { name: "Customer" },
+    });
+    if (!cutomerRole) {
+      cutomerRole = roleRepository.create({ name: "Customer" });
+      await roleRepository.save(cutomerRole);
+    }
+
+    // 2️⃣ Ensure admin user exists
+    let adminUser = await userRepository.findOne({
+      where: { email: "superadmin@gmail.com" },
+    });
+    if (!adminUser) {
+      const hashedPassword = await bcrypt.hash("Password@1234", 10);
+      adminUser = userRepository.create({
+        name: "Super Admin",
+        email: "superadmin@gmail.com",
+        password: hashedPassword,
+        role: adminRole,
+        isActive: true,
+      });
+      await userRepository.save(adminUser);
+      logger.info(
+        "✅ Created default admin user: superadmin@gmail.com / Password@1234"
+      );
+    }
+
     // Create HTTP server
     const httpServer = createServer(app);
 
     // Apply middleware
-    server.applyMiddleware({
-      app,
-      cors: {
-        credentials: true,
-        origin: [
-          "http://localhost:8080",
-          "https://studio.apollographql.com",
-          "http://localhost:3000",
-          "http://localhost:3001",
-          "http://admin.alem.ae",
-          "https://admin.alem.ae",
-        ],
-      },
+    server.applyMiddleware({ 
+        app,
+        cors: {
+            credentials: true,
+            origin: [
+                'http://localhost:8080',
+                'https://studio.apollographql.com',
+                'http://localhost:3000', 
+                'http://localhost:3001',
+                'https://admin.alem.ae',
+            ],
+        }
     });
 
     // Set up WebSocket for handling GraphQL subscriptions
