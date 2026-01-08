@@ -327,6 +327,7 @@ dataSource
         email: "superadmin@gmail.com",
         password: hashedPassword,
         role: adminRole,
+        phone: "0000000000",
         isActive: true,
       });
       await userRepository.save(adminUser);
