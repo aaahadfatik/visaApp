@@ -264,14 +264,8 @@ const serviceResolvers = {
         total: totalCount,
       };
     },
-
-    getUserSubmittedForms: async (
-      _: any,
-      { userId }: { userId: string },
-      context: any
-    ) => {
+    getUserSubmittedForms: async ( _: any, { userId }: { userId: string }) => {
       const submissionRepo = dataSource.getRepository(FormSubmission);
-      const ctxUser = await authenticate(context);
       const submissions = await submissionRepo
         .createQueryBuilder("submission")
         .leftJoinAndSelect("submission.form", "form")
@@ -280,6 +274,31 @@ const serviceResolvers = {
         .leftJoinAndSelect("submission.documents", "documents")
         .orderBy("submission.createdAt", "DESC")
         .where("submission.createdBy = :userId", { userId: userId })
+        .getMany();
+
+      return submissions.map((s) => ({
+        id: s.id,
+        formId: s.form.id,
+        status: s.status,
+        visa: s.visa || null,
+        visaCategory: s.visa?.category?.title || null,
+        answers: s.answers,
+        createdAt: s.createdAt.toISOString(),
+      }));
+    },
+    getUserSubmittedPendingForms: async ( _: any,{ userId }: { userId: string }) => {
+      const submissionRepo = dataSource.getRepository(FormSubmission);
+      const submissions = await submissionRepo
+        .createQueryBuilder("submission")
+        .leftJoinAndSelect("submission.form", "form")
+        .leftJoinAndSelect("submission.visa", "visa")
+        .leftJoinAndSelect("visa.category", "category")
+        .leftJoinAndSelect("submission.documents", "documents")
+        .orderBy("submission.createdAt", "DESC")
+        .where("submission.createdBy = :userId", { userId: userId })
+        .andWhere("submission.status = :status", {
+          status: FormStatus.UNDER_PROGRESS,
+        })
         .getMany();
 
       return submissions.map((s) => ({
