@@ -247,6 +247,7 @@ const service = gql`
     ): FormSubmissionReturn!
     getSubmittedFormById(id: ID!): FormSubmission
     getUserSubmittedForms(userId: ID!): [FormSubmission!]!
+    getUserSubmittedPendingForms(userId: ID!): [FormSubmission!]!
 
     getSubmittedFormsStatistics: FormSubmissionStatistics!
     getServiceStatistics(year: String): SeriveStatisticsReturn!
