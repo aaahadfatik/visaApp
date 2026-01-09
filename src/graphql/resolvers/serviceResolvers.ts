@@ -264,7 +264,7 @@ const serviceResolvers = {
         total: totalCount,
       };
     },
-    getUserSubmittedForms: async ( _: any, { userId }: { userId: string }) => {
+    getUserSubmittedForms: async (_: any, { userId }: { userId: string }) => {
       const submissionRepo = dataSource.getRepository(FormSubmission);
       const submissions = await submissionRepo
         .createQueryBuilder("submission")
@@ -286,7 +286,10 @@ const serviceResolvers = {
         createdAt: s.createdAt.toISOString(),
       }));
     },
-    getUserSubmittedPendingForms: async ( _: any,{ userId }: { userId: string }) => {
+    getUserSubmittedPendingForms: async (
+      _: any,
+      { userId }: { userId: string }
+    ) => {
       const submissionRepo = dataSource.getRepository(FormSubmission);
       const submissions = await submissionRepo
         .createQueryBuilder("submission")
@@ -454,6 +457,8 @@ const serviceResolvers = {
       const service = serviceRepo.create({
         title: input.title,
         isForSale: input.isForSale ?? false,
+        description: input.description || "",
+        imageUrl: input.imageUrl || "",
       });
 
       if (input.categoryIds && input.categoryIds.length > 0) {
