@@ -8,6 +8,7 @@ import {
   Document,
   Notification,
   User,
+  CategoryAttribute,
 } from "../../entity";
 import { dataSource } from "../../datasource";
 import { authenticate } from "../../utils/authUtils";
@@ -23,6 +24,7 @@ import {
   FormAttributeInput,
   SubmitFormInput,
   FormFilter,
+  UpdateCategoryAttributeInput,
 } from "types";
 import { AttributeType, FormStatus } from "../../enum"; // Import your enum
 import { ILike } from "typeorm";
@@ -37,6 +39,7 @@ const documentRepo = dataSource.getRepository(Document);
 const notificationRepository = dataSource.getRepository(Notification);
 const userRepository = dataSource.getRepository(User);
 const visaRepository = dataSource.getRepository(Visa);
+const categoryAttributeRepo = dataSource.getRepository(CategoryAttribute);
 
 const serviceResolvers = {
   FormSubmission: {
@@ -85,7 +88,10 @@ const serviceResolvers = {
         relations: ["categories", "categories.visas"],
       });
     },
-    getCategories: async () => {
+    getCategories: async ({serviceId}:{serviceId?:string}) => {
+      if(serviceId){
+        return await categoryRepo.find({where:{service:{id:serviceId}}, relations: ["service"] });
+      }
       return await categoryRepo.find({ relations: ["service"] });
     },
     getCategoryById: async (
@@ -497,10 +503,7 @@ const serviceResolvers = {
       await serviceRepo.save(service);
       return true;
     },
-    createCategory: async (
-      _: any,
-      { input }: { input: CreateCategoryInput }
-    ) => {
+    createCategory: async (_: any,{ input }: { input: CreateCategoryInput }) => {
       const categoryRepo = dataSource.getRepository(Category);
       const serviceRepo = dataSource.getRepository(Service);
 
@@ -517,10 +520,7 @@ const serviceResolvers = {
 
       return await categoryRepo.save(category);
     },
-    updateCategory: async (
-      _: any,
-      { input }: { input: UpdateCategoryInput }
-    ) => {
+    updateCategory: async ( _: any, { input }: { input: UpdateCategoryInput }) => {
       const category = await categoryRepo.findOne({
         where: { id: input.id },
         relations: ["service"],
@@ -541,6 +541,19 @@ const serviceResolvers = {
       }
 
       return await categoryRepo.save(category);
+    },
+    updateCategoryAttribute: async ({input}:{input:UpdateCategoryAttributeInput})=>{
+      const categoryAttribute = await categoryAttributeRepo.findOne({
+        where: { id:input.id },
+      });
+      if (!categoryAttribute)
+        throw new Error("Category Attribute not found");
+
+      if (input.name !== undefined) categoryAttribute.name = input.name;
+      if (input.value !== undefined) categoryAttribute.value = input.value;
+
+      await categoryAttributeRepo.save(categoryAttribute);
+      return categoryAttribute;
     },
     createVisa: async (_: any, { input }: { input: CreateVisaInput }) => {
       const category = await categoryRepo.findOne({

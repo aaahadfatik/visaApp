@@ -4,6 +4,7 @@ import Service from './Service';
 import Visa from './Visa';
 import FormSubmission from './FormSubmission';
 import Form from './Form';
+import CategoryAttribute from './CategoryAttribute';
 
 @Entity()
 export default class CateGory extends BaseEntity {
@@ -44,4 +45,7 @@ export default class CateGory extends BaseEntity {
   // Relation to FormSubmission (multiple submissions per category)
   @OneToMany(() => FormSubmission, (submission) => submission.category)
   submissions!: FormSubmission[];
+
+  @OneToMany(() => CategoryAttribute, (attribute) => attribute.category, { cascade: true })
+  attributes!: CategoryAttribute[];
 }
