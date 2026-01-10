@@ -201,10 +201,27 @@ export interface UpdateServiceInput {
   categoryIds?: string[];
 }
 
+interface CategoryAttributeInput {
+  name: string;
+  value: string;
+}
+
 export interface CreateCategoryInput {
   title: string;
   isForSale?: boolean;
   serviceId: string;
+  vipPrice?: number;
+  vvipPrice?: number;
+  normalPrice?: number;
+  description?: string[];
+  info?: string[];
+  categoryAttributes?: CategoryAttributeInput[];
+}
+
+export interface UpdateCategoryAttributeInput {
+  id: string;
+  name?: string;
+  value?: string;
 }
 
 export interface UpdateCategoryInput {

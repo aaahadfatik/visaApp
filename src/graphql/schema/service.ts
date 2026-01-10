@@ -46,6 +46,13 @@ const service = gql`
     submissions: [FormSubmission!]
   }
 
+  type CategoryAttribute {
+    id:ID!
+    name: String!
+    value: String!
+    category: Category!
+  }
+
   type Visa {
     id: ID!
     title: String!
@@ -118,6 +125,10 @@ const service = gql`
     description: String
   }
 
+  input CategoryAttributeInput {
+    name: String!
+    value: String!
+  }
   input CreateCategoryInput {
     title: String!
     isForSale: Boolean
@@ -127,6 +138,7 @@ const service = gql`
     description: [String!]
     info: [String!]
     serviceId: ID!
+    categoryAttributes: [CategoryAttributeInput!]
   }
 
   input UpdateCategoryInput {
@@ -135,6 +147,12 @@ const service = gql`
     isForSale: Boolean
     serviceId: ID
   }
+
+  input UpdateCategoryAttributeInput {
+    id: ID!
+    name: String
+    value: String
+    }
 
   input CreateVisaInput {
     title: String!
@@ -231,7 +249,7 @@ const service = gql`
     getServices(search: String): [Service!]!
     getServiceById(id: ID!): Service
 
-    getCategories: [Category!]!
+    getCategories(serviceId:ID): [Category!]!
     getCategoryById(id: ID!, search: String): Category
 
     getVisas(title: String): [Visa!]!
@@ -263,8 +281,11 @@ const service = gql`
     createCategory(input: CreateCategoryInput!): Category!
     updateCategory(input: UpdateCategoryInput!): Category!
 
+    updateCategoryAttribute(input: UpdateCategoryAttributeInput!): CategoryAttribute!
+
     createVisa(input: CreateVisaInput!): Visa!
     updateVisa(input: UpdateVisaInput!): Visa!
+
     deleteVisa(id: ID!): Boolean!
     deleteService(id: ID!): Boolean!
 
