@@ -252,9 +252,12 @@ export interface UpdateVisaInput {
   info?: string[];
 }
 
+
+
 export interface CreateFormInput {
-  visaId: string;
   attributes: FormAttributeInput[];
+  documents: CreateDocumentInput[];
+  categoryId: String
 }
 
 export interface FormAttributeInput {

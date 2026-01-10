@@ -189,11 +189,18 @@ const service = gql`
     children: [FormAttributeInput!]
   }
 
+  input CreateDocumentInput {
+    title: String!
+    fileName: String!
+    fileType: String!
+    filePath: String!
+    description: String
+  }
+
   input CreateFormInput {
-    visaId: ID!
     attributes: [FormAttributeInput!]!
     documents: [CreateDocumentInput!]
-    categoryId: String
+    categoryId: String!
   }
 
   input FormAnswerInput {

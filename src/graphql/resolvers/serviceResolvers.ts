@@ -609,10 +609,10 @@ const serviceResolvers = {
       const formRepo = dataSource.getRepository(Form);
       const attrRepo = dataSource.getRepository(FormAttribute);
 
-      const visa = await visaRepo.findOne({ where: { id: input.visaId } });
-      if (!visa) throw new Error("Visa not found");
+      const category = await categoryAttributeRepo.findOne({ where: { id: input.categoryId as string } });
+      if (!category) throw new Error("category not found");
 
-      const form = formRepo.create({ visa });
+      const form = formRepo.create({ category });
       await formRepo.save(form);
 
       async function createAttribute(
