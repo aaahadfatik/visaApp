@@ -609,7 +609,9 @@ const serviceResolvers = {
       const formRepo = dataSource.getRepository(Form);
       const attrRepo = dataSource.getRepository(FormAttribute);
 
-      const category = await categoryAttributeRepo.findOne({ where: { id: input.categoryId } });
+      const category = await categoryRepo.findOne({
+        where: { id: input.categoryId },
+      });
       logger.info("Creating form for category ID:", input.categoryId);
       logger.info("   category:", category);
       if (!category) throw new Error("category not found");
@@ -666,15 +668,21 @@ const serviceResolvers = {
 
       return form;
     },
-    submitForm: async (_: any,{ input }: { input: SubmitFormInput }, context: any) => {
+    submitForm: async (
+      _: any,
+      { input }: { input: SubmitFormInput },
+      context: any
+    ) => {
       const formRepo = dataSource.getRepository(Form);
       const submissionRepo = dataSource.getRepository(FormSubmission);
       const ctxUser = await authenticate(context);
       const form = await formRepo.findOne({ where: { id: input.formId } });
       if (!form) throw new Error("Form not found");
 
-      const category = await categoryAttributeRepo.findOne({ where: { id: input.categoryId } });
-      if (!category) throw new Error("Visa not found");
+      const category = await categoryRepo.findOne({
+        where: { id: input.categoryId },
+      });
+      if (!category) throw new Error("Category not found");
 
       const submission = submissionRepo.create({
         form,
