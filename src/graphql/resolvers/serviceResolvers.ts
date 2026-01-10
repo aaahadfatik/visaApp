@@ -181,6 +181,22 @@ const serviceResolvers = {
         .addOrderBy("attribute.id", "ASC") // secondary order, keep stable order
         .getOne();
     },
+    getFormByCategoryId: async ({categoryId}:{categoryId:string})=>{
+      const form = await formRepo
+        .createQueryBuilder("form")
+        .leftJoinAndSelect(
+          "form.attributes",
+          "attribute",
+          "attribute.parentId IS NULL" // only top‑level attributes
+        )
+        .leftJoinAndSelect("attribute.children", "children")
+        .leftJoinAndSelect("form.category", "category")
+        .where("category.id = :categoryId", { categoryId })
+        .orderBy("CASE WHEN children.id IS NULL THEN 0 ELSE 1 END", "ASC")
+        .addOrderBy("attribute.id", "ASC") // secondary order, keep stable order
+        .getOne();
+        return form;
+    },
     getSubmittedForms: async (
       _: any,
       {
