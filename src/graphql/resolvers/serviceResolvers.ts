@@ -29,6 +29,7 @@ import {
 import { AttributeType, FormStatus } from "../../enum"; // Import your enum
 import { ILike } from "typeorm";
 import { pubsub } from "../../server";
+import { logger } from "utils/logger";
 
 const serviceRepo = dataSource.getRepository(Service);
 const categoryRepo = dataSource.getRepository(Category);
@@ -605,11 +606,12 @@ const serviceResolvers = {
       return visaRepo.save(visa);
     },
     createForm: async (_: any, { input }: { input: CreateFormInput }) => {
-      const visaRepo = dataSource.getRepository(Visa);
       const formRepo = dataSource.getRepository(Form);
       const attrRepo = dataSource.getRepository(FormAttribute);
 
-      const category = await categoryAttributeRepo.findOne({ where: { id: input.categoryId as string } });
+      const category = await categoryAttributeRepo.findOne({ where: { id: input.categoryId } });
+      logger.info("Creating form for category ID:", input.categoryId);
+      logger.info("   category:", category);
       if (!category) throw new Error("category not found");
 
       const form = formRepo.create({ category });
