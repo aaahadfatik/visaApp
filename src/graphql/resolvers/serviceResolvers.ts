@@ -664,24 +664,20 @@ const serviceResolvers = {
 
       return form;
     },
-    submitForm: async (
-      _: any,
-      { input }: { input: SubmitFormInput },
-      context: any
-    ) => {
+    submitForm: async (_: any,{ input }: { input: SubmitFormInput }, context: any) => {
       const formRepo = dataSource.getRepository(Form);
       const submissionRepo = dataSource.getRepository(FormSubmission);
       const ctxUser = await authenticate(context);
       const form = await formRepo.findOne({ where: { id: input.formId } });
       if (!form) throw new Error("Form not found");
 
-      const visa = await visaRepo.findOne({ where: { id: input.visaId } });
-      if (!visa) throw new Error("Visa not found");
+      const category = await categoryAttributeRepo.findOne({ where: { id: input.categoryId } });
+      if (!category) throw new Error("Visa not found");
 
       const submission = submissionRepo.create({
         form,
         answers: input.answers,
-        visa,
+        category,
         createdBy: ctxUser.userId,
         status: FormStatus.UNDER_PROGRESS,
       });
