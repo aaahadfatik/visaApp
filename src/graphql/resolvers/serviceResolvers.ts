@@ -88,7 +88,7 @@ const serviceResolvers = {
         relations: ["categories", "categories.visas"],
       });
     },
-    getCategories: async ({ serviceId }: { serviceId?: string }) => {
+    getCategories: async (_: any, { serviceId }: { serviceId?: string }) => {
       if (serviceId) {
         return await categoryRepo.find({
           where: { service: { id: serviceId } },
