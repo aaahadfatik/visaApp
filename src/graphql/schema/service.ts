@@ -264,6 +264,7 @@ const service = gql`
 
     getForms: [Form]
     getFormByVisaId(visaId: ID!): Form
+    getFormByCategoryId(categoryId: ID!): Form
 
     getSubmittedForms(
       limit: Int
