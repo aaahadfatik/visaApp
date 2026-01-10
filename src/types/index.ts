@@ -277,7 +277,7 @@ export interface FormAnswerInput {
 
 export interface SubmitFormInput {
   formId: string;
-  visaId: string;
+  categoryId: string;
   answers: FormAnswerInput[];
   documents: CreateDocumentInput[];
 }

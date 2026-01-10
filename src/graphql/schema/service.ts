@@ -204,7 +204,7 @@ const service = gql`
 
   input SubmitFormInput {
     formId: ID!
-    visaId: ID!
+    categoryId: ID!
     answers: [FormAnswerInput!]!
     documents: [CreateDocumentInput!]
   }
