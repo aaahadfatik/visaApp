@@ -181,7 +181,7 @@ const serviceResolvers = {
         .addOrderBy("attribute.id", "ASC") // secondary order, keep stable order
         .getOne();
     },
-    getFormByCategoryId: async ({categoryId}:{categoryId:string})=>{
+    getFormByCategoryId: async (_: any,{categoryId}:{categoryId:string})=>{
       const form = await formRepo
         .createQueryBuilder("form")
         .leftJoinAndSelect(
