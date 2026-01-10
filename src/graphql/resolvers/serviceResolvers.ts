@@ -29,7 +29,7 @@ import {
 import { AttributeType, FormStatus } from "../../enum"; // Import your enum
 import { ILike } from "typeorm";
 import { pubsub } from "../../server";
-import { logger } from "utils/logger";
+import { logger } from "../../utils/logger";
 
 const serviceRepo = dataSource.getRepository(Service);
 const categoryRepo = dataSource.getRepository(Category);
