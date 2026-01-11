@@ -64,9 +64,9 @@ const serviceResolvers = {
           "categories.visas.form.attributes",
         ],
       });
-    
+
       const keyword = search?.toLowerCase();
-    
+
       const filtered = keyword
         ? services.filter(
             (service) =>
@@ -80,21 +80,21 @@ const serviceResolvers = {
               )
           )
         : services;
-    
+
       return filtered.map((service) => {
         const submissions =
           service.categories?.flatMap(
             (category) => category.submissions ?? []
           ) ?? [];
-    
+
         const pendingSubmission = submissions.filter(
           (s) => s.status === "UNDER_PROGRESS"
         ).length;
-    
+
         const completedSubmission = submissions.filter(
           (s) => s.status === "COMPLETED"
         ).length;
-    
+
         return {
           services: service,
           total: submissions.length,
@@ -102,7 +102,7 @@ const serviceResolvers = {
           completedSubmission,
         };
       });
-    },    
+    },
     getServiceById: async (_: any, { id }: { id: string }) => {
       return await serviceRepo.findOne({
         where: { id, isDeleted: false },
@@ -201,7 +201,10 @@ const serviceResolvers = {
         .addOrderBy("attribute.id", "ASC") // secondary order, keep stable order
         .getOne();
     },
-    getFormByCategoryId: async (_: any,{categoryId}:{categoryId:string})=>{
+    getFormByCategoryId: async (
+      _: any,
+      { categoryId }: { categoryId: string }
+    ) => {
       const form = await formRepo
         .createQueryBuilder("form")
         .leftJoinAndSelect(
@@ -215,7 +218,7 @@ const serviceResolvers = {
         .orderBy("CASE WHEN children.id IS NULL THEN 0 ELSE 1 END", "ASC")
         .addOrderBy("attribute.id", "ASC") // secondary order, keep stable order
         .getOne();
-        return form;
+      return form;
     },
     getSubmittedForms: async (
       _: any,
@@ -363,7 +366,7 @@ const serviceResolvers = {
     getSubmittedFormById: async (_: any, { id }: { id: string }) => {
       const submission = await submissionRepo.findOne({
         where: { id },
-        relations: ["form", "visa", "documents", "payment"],
+        relations: ["form", "visa", "documents", "payment", "createdBy"],
       });
       if (!submission) throw new Error("Submission not found");
 
@@ -372,6 +375,7 @@ const serviceResolvers = {
         formId: submission.form.id,
         answers: submission.answers,
         createdAt: submission.createdAt.toISOString(),
+        createdBy: submission.createdBy,
       };
     },
     getSubmittedFormsStatistics: async (_: any, __: any) => {
