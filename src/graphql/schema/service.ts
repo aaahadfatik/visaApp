@@ -251,9 +251,16 @@ const service = gql`
     submissions: [FormSubmission!]!
     total: Int!
   }
+  
+  type ServiceReturn {
+    services: Service!
+    total: Int!
+    pendingSubmission: Int!
+    completedSubmission: Int!
+  }
 
   type Query {
-    getServices(search: String): [Service!]!
+    getServices(search: String): [ServiceReturn!]!
     getServiceById(id: ID!): Service
 
     getCategories(serviceId:ID): [Category!]!
