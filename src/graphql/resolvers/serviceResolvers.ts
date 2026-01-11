@@ -366,7 +366,7 @@ const serviceResolvers = {
     getSubmittedFormById: async (_: any, { id }: { id: string }) => {
       const submission = await submissionRepo.findOne({
         where: { id },
-        relations: ["form", "visa", "documents", "payment", "createdBy"],
+        relations: ["form", "visa", "documents", "payment"],
       });
       if (!submission) throw new Error("Submission not found");
 
