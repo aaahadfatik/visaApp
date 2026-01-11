@@ -53,36 +53,56 @@ const serviceResolvers = {
   },
 
   Query: {
-    getServices: async (_: any, { search }: { search: string }) => {
+    getServices: async (_: any, { search }: { search?: string }) => {
       const services = await serviceRepo.find({
         where: { isDeleted: false },
         relations: [
           "categories",
+          "categories.submissions",
           "categories.visas",
           "categories.visas.form",
           "categories.visas.form.attributes",
         ],
       });
-
-      if (!search) return services;
-
-      const keyword = search.toLowerCase();
-
-      // Filter services where service.name or any category/visa name matches search
-      const filteredServices = services.filter(
-        (service) =>
-          service.title.toLowerCase().includes(keyword) ||
-          service.categories?.some(
-            (category) =>
-              category.title?.toLowerCase().includes(keyword) ||
-              category.visas?.some((visa) =>
-                visa.title?.toLowerCase().includes(keyword)
+    
+      const keyword = search?.toLowerCase();
+    
+      const filtered = keyword
+        ? services.filter(
+            (service) =>
+              service.title.toLowerCase().includes(keyword) ||
+              service.categories?.some(
+                (category) =>
+                  category.title?.toLowerCase().includes(keyword) ||
+                  category.visas?.some((visa) =>
+                    visa.title?.toLowerCase().includes(keyword)
+                  )
               )
           )
-      );
-
-      return filteredServices;
-    },
+        : services;
+    
+      return filtered.map((service) => {
+        const submissions =
+          service.categories?.flatMap(
+            (category) => category.submissions ?? []
+          ) ?? [];
+    
+        const pendingSubmission = submissions.filter(
+          (s) => s.status === "UNDER_PROGRESS"
+        ).length;
+    
+        const completedSubmission = submissions.filter(
+          (s) => s.status === "COMPLETED"
+        ).length;
+    
+        return {
+          services: service,
+          total: submissions.length,
+          pendingSubmission,
+          completedSubmission,
+        };
+      });
+    },    
     getServiceById: async (_: any, { id }: { id: string }) => {
       return await serviceRepo.findOne({
         where: { id, isDeleted: false },
