@@ -369,9 +369,15 @@ const serviceResolvers = {
             ? {
                 id: s.category.id,
                 title: s.category.title,
+                service: s.category.service
+                  ? {
+                      id: s.category.service.id,
+                      title: s.category.service.title,
+                    }
+                  : null,
               }
             : null,
-        }));
+        }));        
         
     },
     getSubmittedFormById: async (_: any, { id }: { id: string }) => {
