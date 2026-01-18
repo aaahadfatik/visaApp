@@ -101,6 +101,7 @@ const service = gql`
     updatedAt: DateTime
     createdBy: User
     payment: Payment
+    service:Service
     category: Category
   }
 
