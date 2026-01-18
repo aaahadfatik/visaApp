@@ -389,7 +389,7 @@ const serviceResolvers = {
       .leftJoinAndSelect("submission.documents", "documents")
       .orderBy("submission.createdAt", "DESC")
       .where("submission.id = :id", {id})
-      .getMany();
+      .getOne(); 
     
       if (!submission) {
         throw new Error("Submission not found");
