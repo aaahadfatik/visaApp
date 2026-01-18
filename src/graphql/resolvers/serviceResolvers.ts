@@ -343,6 +343,7 @@ const serviceResolvers = {
       const submissions = await submissionRepo
       .createQueryBuilder("submission")
       .leftJoinAndSelect("submission.form", "form")
+    .leftJoinAndSelect("category.service", "service") // join service via category
       .leftJoinAndSelect("submission.category", "category")  // <-- direct join to Category
       .leftJoinAndSelect("submission.documents", "documents")
       .orderBy("submission.createdAt", "DESC")
