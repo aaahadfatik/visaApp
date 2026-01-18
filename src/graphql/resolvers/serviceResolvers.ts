@@ -352,7 +352,14 @@ const serviceResolvers = {
           status: FormStatus.UNDER_PROGRESS,
         })
         .getMany();
-
+        console.log(
+          submissions.map(s => ({
+            submissionId: s.id,
+            visa: s.visa,
+            category: s.visa?.category,
+          }))
+        );
+        
         return submissions.map((s) => ({
           id: s.id,
           status: s.status,
