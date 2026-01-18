@@ -381,16 +381,15 @@ const serviceResolvers = {
         
     },
     getSubmittedFormById: async (_: any, { id }: { id: string }) => {
-      const submission = await submissionRepo.findOne({
-        where: { id },
-        relations: [
-          "form",
-          "documents",
-          "payment",
-          "category",
-          "category.service",
-        ],
-      });
+      const submission = await submissionRepo
+      .createQueryBuilder("submission")
+      .leftJoinAndSelect("submission.form", "form")
+      .leftJoinAndSelect("submission.category", "category") // join category
+      .leftJoinAndSelect("category.service", "service") // join service via category
+      .leftJoinAndSelect("submission.documents", "documents")
+      .orderBy("submission.createdAt", "DESC")
+      .where("submission.id = :id", {id})
+      .getMany();
     
       if (!submission) {
         throw new Error("Submission not found");
