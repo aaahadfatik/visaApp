@@ -341,17 +341,17 @@ const serviceResolvers = {
     ) => {
       const submissionRepo = dataSource.getRepository(FormSubmission);
       const submissions = await submissionRepo
-        .createQueryBuilder("submission")
-        .leftJoinAndSelect("submission.form", "form")
-        .leftJoinAndSelect("submission.visa", "visa")
-        .leftJoinAndSelect("visa.category", "category")
-        .leftJoinAndSelect("submission.documents", "documents")
-        .orderBy("submission.createdAt", "DESC")
-        .where("submission.createdBy = :userId", { userId: userId })
-        .andWhere("submission.status = :status", {
-          status: FormStatus.UNDER_PROGRESS,
-        })
-        .getMany();
+      .createQueryBuilder("submission")
+      .leftJoinAndSelect("submission.form", "form")
+      .leftJoinAndSelect("submission.category", "category")  // <-- direct join to Category
+      .leftJoinAndSelect("submission.documents", "documents")
+      .orderBy("submission.createdAt", "DESC")
+      .where("submission.createdBy = :userId", { userId })
+      .andWhere("submission.status = :status", {
+        status: FormStatus.UNDER_PROGRESS,
+      })
+      .getMany();
+
         console.log(
           submissions.map(s => ({
             submissionId: s.id,
@@ -364,8 +364,14 @@ const serviceResolvers = {
           id: s.id,
           status: s.status,
           createdAt: s.createdAt.toISOString(),
-          visaCategory: s.visa?.category?.title || null,
-        }));        
+          category: s.category
+            ? {
+                id: s.category.id,
+                title: s.category.title,
+              }
+            : null,
+        }));
+        
     },
     getSubmittedFormById: async (_: any, { id }: { id: string }) => {
       const submission = await submissionRepo.findOne({
