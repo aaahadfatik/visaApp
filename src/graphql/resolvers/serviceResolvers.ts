@@ -397,12 +397,7 @@ const serviceResolvers = {
       }
     
       return {
-        id: submission.id,
-        formId: submission.form?.id ?? null,
-        answers: submission.answers,
-        createdAt: submission.createdAt.toISOString(),
-        createdBy: submission.createdBy ?? null,
-    
+        ...submission,
         category: submission.category
           ? {
               id: submission.category.id,
