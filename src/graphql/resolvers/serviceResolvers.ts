@@ -343,8 +343,8 @@ const serviceResolvers = {
       const submissions = await submissionRepo
       .createQueryBuilder("submission")
       .leftJoinAndSelect("submission.form", "form")
-    .leftJoinAndSelect("category.service", "service") // join service via category
-      .leftJoinAndSelect("submission.category", "category")  // <-- direct join to Category
+      .leftJoinAndSelect("submission.category", "category") // join category
+      .leftJoinAndSelect("category.service", "service") // join service via category
       .leftJoinAndSelect("submission.documents", "documents")
       .orderBy("submission.createdAt", "DESC")
       .where("submission.createdBy = :userId", { userId })
@@ -352,6 +352,14 @@ const serviceResolvers = {
         status: FormStatus.UNDER_PROGRESS,
       })
       .getMany();
+
+        console.log(
+          submissions.map(s => ({
+            submissionId: s.id,
+            visa: s.visa,
+            category: s.visa?.category,
+          }))
+        );
         
         return submissions.map((s) => ({
           id: s.id,
