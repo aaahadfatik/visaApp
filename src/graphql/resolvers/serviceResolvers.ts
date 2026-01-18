@@ -396,24 +396,7 @@ const serviceResolvers = {
         throw new Error("Submission not found");
       }
     
-      return {
-        ...submission,
-        category: submission.category
-          ? {
-              id: submission.category.id,
-              title: submission.category.title,
-              service: submission.category.service
-                ? {
-                    id: submission.category.service.id,
-                    title: submission.category.service.title,
-                  }
-                : null,
-            }
-          : null,
-    
-        documents: submission.documents ?? [],
-        payment: submission.payment ?? null,
-      };
+     return submission;
     },    
     getSubmittedFormsStatistics: async (_: any, __: any) => {
       const submissionRepo = dataSource.getRepository(FormSubmission);
