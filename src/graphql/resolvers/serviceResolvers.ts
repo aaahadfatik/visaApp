@@ -353,15 +353,17 @@ const serviceResolvers = {
         })
         .getMany();
 
-      return submissions.map((s) => ({
-        id: s.id,
-        formId: s.form.id,
-        status: s.status,
-        visa: s.visa || null,
-        visaCategory: s.visa?.category?.title || null,
-        answers: s.answers,
-        createdAt: s.createdAt.toISOString(),
-      }));
+        return submissions.map((s) => ({
+          id: s.id,
+          status: s.status,
+          createdAt: s.createdAt.toISOString(),
+          category: s.visa?.category
+            ? {
+                id: s.visa.category.id,
+                title: s.visa.category.title,
+              }
+            : null,
+        }));        
     },
     getSubmittedFormById: async (_: any, { id }: { id: string }) => {
       const submission = await submissionRepo.findOne({
