@@ -316,24 +316,32 @@ const serviceResolvers = {
     getUserSubmittedForms: async (_: any, { userId }: { userId: string }) => {
       const submissionRepo = dataSource.getRepository(FormSubmission);
       const submissions = await submissionRepo
-        .createQueryBuilder("submission")
-        .leftJoinAndSelect("submission.form", "form")
-        .leftJoinAndSelect("submission.visa", "visa")
-        .leftJoinAndSelect("visa.category", "category")
-        .leftJoinAndSelect("submission.documents", "documents")
-        .orderBy("submission.createdAt", "DESC")
-        .where("submission.createdBy = :userId", { userId: userId })
+      .createQueryBuilder("submission")
+      .leftJoinAndSelect("submission.form", "form")
+      .leftJoinAndSelect("submission.category", "category") // join category
+      .leftJoinAndSelect("category.service", "service") // join service via category
+      .leftJoinAndSelect("submission.documents", "documents")
+      .orderBy("submission.createdAt", "DESC")
+      .where("submission.createdBy = :userId", { userId })
         .getMany();
 
       return submissions.map((s) => ({
         id: s.id,
-        formId: s.form.id,
         status: s.status,
-        visa: s.visa || null,
-        visaCategory: s.visa?.category?.title || null,
-        answers: s.answers,
         createdAt: s.createdAt.toISOString(),
-      }));
+        category: s.category
+          ? {
+              id: s.category.id,
+              title: s.category.title,
+              service: s.category.service
+                ? {
+                    id: s.category.service.id,
+                    title: s.category.service.title,
+                  }
+                : null,
+            }
+          : null,
+      }));        
     },
     getUserSubmittedPendingForms: async (
       _: any,
@@ -352,32 +360,24 @@ const serviceResolvers = {
         status: FormStatus.UNDER_PROGRESS,
       })
       .getMany();
-
-        console.log(
-          submissions.map(s => ({
-            submissionId: s.id,
-            visa: s.visa,
-            category: s.visa?.category,
-          }))
-        );
         
-        return submissions.map((s) => ({
-          id: s.id,
-          status: s.status,
-          createdAt: s.createdAt.toISOString(),
-          category: s.category
-            ? {
-                id: s.category.id,
-                title: s.category.title,
-                service: s.category.service
-                  ? {
-                      id: s.category.service.id,
-                      title: s.category.service.title,
-                    }
-                  : null,
-              }
-            : null,
-        }));        
+      return submissions.map((s) => ({
+        id: s.id,
+        status: s.status,
+        createdAt: s.createdAt.toISOString(),
+        category: s.category
+          ? {
+              id: s.category.id,
+              title: s.category.title,
+              service: s.category.service
+                ? {
+                    id: s.category.service.id,
+                    title: s.category.service.title,
+                  }
+                : null,
+            }
+          : null,
+      }));        
         
     },
     getSubmittedFormById: async (_: any, { id }: { id: string }) => {
