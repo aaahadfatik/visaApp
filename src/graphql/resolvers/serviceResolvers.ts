@@ -357,12 +357,7 @@ const serviceResolvers = {
           id: s.id,
           status: s.status,
           createdAt: s.createdAt.toISOString(),
-          category: s.visa?.category
-            ? {
-                id: s.visa.category.id,
-                title: s.visa.category.title,
-              }
-            : null,
+          visaCategory: s.visa?.category?.title || null,
         }));        
     },
     getSubmittedFormById: async (_: any, { id }: { id: string }) => {
