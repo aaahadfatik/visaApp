@@ -383,18 +383,43 @@ const serviceResolvers = {
     getSubmittedFormById: async (_: any, { id }: { id: string }) => {
       const submission = await submissionRepo.findOne({
         where: { id },
-        relations: ["form", "visa", "documents", "payment","category","category.service"],
+        relations: [
+          "form",
+          "documents",
+          "payment",
+          "category",
+          "category.service",
+        ],
       });
-      if (!submission) throw new Error("Submission not found");
-
+    
+      if (!submission) {
+        throw new Error("Submission not found");
+      }
+    
       return {
         id: submission.id,
-        formId: submission.form.id,
+        formId: submission.form?.id ?? null,
         answers: submission.answers,
         createdAt: submission.createdAt.toISOString(),
-        createdBy: submission.createdBy,
+        createdBy: submission.createdBy ?? null,
+    
+        category: submission.category
+          ? {
+              id: submission.category.id,
+              title: submission.category.title,
+              service: submission.category.service
+                ? {
+                    id: submission.category.service.id,
+                    title: submission.category.service.title,
+                  }
+                : null,
+            }
+          : null,
+    
+        documents: submission.documents ?? [],
+        payment: submission.payment ?? null,
       };
-    },
+    },    
     getSubmittedFormsStatistics: async (_: any, __: any) => {
       const submissionRepo = dataSource.getRepository(FormSubmission);
 
