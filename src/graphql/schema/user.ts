@@ -144,6 +144,12 @@ type RegisteredUsersGraphReturn {
   data: [RegisteredUsersGraphItem!]!
 }
 
+  type OTPVerificationResponse {
+    success: Boolean!
+    message: String!
+    resetToken: String
+  }
+
 type Query {
   getRoles: [Role!]!
 
@@ -168,6 +174,9 @@ type Mutation {
 
   generateClientAccountNumber: String
   refreshToken(token: String!): AuthResponse
+
+   verifyEmailOTP(email: String!, otp: String!): OTPVerificationResponse!
+  verifyEmail(email: String!): String
 }
 type Subscription {
   newNotification: Notification!

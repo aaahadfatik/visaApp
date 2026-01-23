@@ -13,3 +13,4 @@ export { default as FormAttribute } from './FormAttribute';
 export { default as FormSubmission } from './FormSubmission';
 export { default as Payment } from './Payment';
 export { default as CategoryAttribute } from './CategoryAttribute';
+export { default as OTP } from './OTP';
