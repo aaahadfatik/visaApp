@@ -453,7 +453,7 @@ const userResolvers = {
               
               <p style="margin-top:24px;">
                 Kind regards,<br />
-                <strong>Jusoor Team</strong>
+                <strong>Alem Team</strong>
               </p>
             `,
           }),

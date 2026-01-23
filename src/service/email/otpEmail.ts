@@ -1,7 +1,7 @@
 import { baseTemplate } from "./baseTemplate";
 
 export const getOtpEmailTemplate = (otpCode: string): string => {
-  const logoUrl = "https://verify.jusoor-sa.co/static/1766823314558-283304473.png";
+  const logoUrl = "";
 
   return `
 <!DOCTYPE html>
