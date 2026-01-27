@@ -118,7 +118,8 @@ const chatResolvers = {
           message: `New message from ${sender.name} to ${receiver.name}`,
           user: admin,
         });
-        const savedAdminNotification = await notificationRepository.save(adminNotification);
+        const savedAdminNotification =
+          await notificationRepository.save(adminNotification);
 
         pubsub.publish("NEW_NOTIFICATION", {
           newNotification: savedAdminNotification,
