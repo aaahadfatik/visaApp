@@ -60,18 +60,29 @@ const chatResolvers = {
       const userRepo = dataSource.getRepository(User);
       const messageRepo = dataSource.getRepository(Message);
       const notificationRepository = dataSource.getRepository(Notification);
-      const chat = await dataSource.getRepository(Chat).findOne({ where:{id: chatId }});
+      const chat = await dataSource.getRepository(Chat).findOne({ 
+        where:{id: chatId },
+        relations: ["sender", "receiver"],
+      });
       if (!chat) throw new Error('Chat not found');
 
       const sender = await userRepo.findOne({ where:{id: ctxUser.userId} });
-      const receiver = await userRepo.findOne({ where:{id: chat.receiverId} });
       if (!sender) throw new Error('Sender not found');
-    if (!receiver) throw new Error('Receiver not found');
 
-      const message = new Message();
-      message.content = content;
-      message.sender = sender;
-      message.chat = chat;
+      let receiver;
+      if (chat.sender.id === sender.id) {
+        receiver = chat.receiver;
+      } else if (chat.receiver.id === sender.id) {
+        receiver = chat.sender;
+      } else {
+        throw new Error("You are not part of this chat");
+      }
+
+      const message = messageRepo.create({
+        content,
+        sender,
+        chat,
+      });
 
       const savedMessage = await messageRepo.save(message);
       
