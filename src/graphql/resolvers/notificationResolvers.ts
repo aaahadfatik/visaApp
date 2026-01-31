@@ -24,12 +24,14 @@ const notificationResolvers = {
       },
 
       getAdminNotifications: async (_: any, { filter }: { filter: NotificationFilter }, context: any) => {
-        await authenticate(context);
+        const ctxUser = await authenticate(context);
+
         const query = notificationRepository
           .createQueryBuilder("notification")
           .leftJoinAndSelect("notification.user", "user")
+          .where("notification.userId != :userId", { userId: ctxUser.userId })
           .orderBy("notification.createdAt", "DESC");
-      
+        
         // 🔍 Search filter
         if (filter?.search) {
           query.andWhere(
