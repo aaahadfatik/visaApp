@@ -8,15 +8,19 @@ const notificationRepository = dataSource.getRepository(Notification);
 const notificationResolvers = {
     Query: {
       getNotifications: async (_: any, { userId,limit,offSet }: { userId: string,limit:number,offSet:number }, context: any) => {
+        // get user notification
         await authenticate(context);
-        const [notifications, total] = await notificationRepository.findAndCount({
-          where: { user: { id: userId } },
-          relations: ['user'],
-          order: { createdAt: 'DESC' },
-          skip: offSet,
-          take: limit,
-        });
-        return {notifications,total}
+        const query = notificationRepository
+          .createQueryBuilder("notification")
+          .where("notification.userId = :userId", { userId })
+          .orderBy("notification.createdAt", "DESC");
+
+        const total = await query.getCount();
+        const notifications = await query.skip(offSet).take(limit).getMany();
+        return {
+          notifications,
+          total,
+        };
       },
 
       getAdminNotifications: async (_: any, { filter }: { filter: NotificationFilter }, context: any) => {
