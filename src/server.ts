@@ -101,7 +101,9 @@ const server = new ApolloServer({
         req.body.query.includes("getVisaById");
 
       const query = req.body?.query || req.query?.query || "";
+      logger.info(`🚀 Incoming query: ${query}`);
       const isIntrospectionQuery = query.includes("__schema");
+      logger.info(`🚀 isIntrospectionQuery: ${isIntrospectionQuery}`);
       if (isIntrospectionQuery) {
         return {}; // Return an empty context for introspection queries
       }
