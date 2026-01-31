@@ -177,6 +177,7 @@ type Mutation {
 
    verifyEmailOTP(email: String!, otp: String!): OTPVerificationResponse!
   verifyEmail(email: String!): String
+  forgetPassword(email: String!): String
 }
 type Subscription {
   newNotification: Notification!
