@@ -16,10 +16,7 @@ const chatResolvers = {
     getUserChats: async (_: any, __: any, context: any) => {
       const user = await authenticate(context);
       return dataSource.getRepository(Chat).find({
-        where: [
-          { sender: { id: user.userId } },
-          { receiver: { id: user.userId } },
-        ],
+        where: {senderId: user.userId},
         relations: ["sender", "receiver", "messages"],
         order: { updatedAt: "DESC" },
       });
