@@ -29,7 +29,7 @@ const notificationResolvers = {
         const query = notificationRepository
           .createQueryBuilder("notification")
           .leftJoinAndSelect("notification.user", "user")
-          .where("notification.userId != :userId", { userId: ctxUser.userId })
+          .where("notification.userId = :userId", { userId: ctxUser.userId })
           .orderBy("notification.createdAt", "DESC");
         
         // 🔍 Search filter
