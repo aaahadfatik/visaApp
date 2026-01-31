@@ -14,26 +14,34 @@ const chatResolvers = {
         relations: ["sender", "receiver", "messages", "messages.sender"],
       });
     },
-    getUserChats: async (_: any, {userId}:{userId:string}, context: any) => {
+    getUserChats: async (
+      _: any,
+      { userId }: { userId: string },
+      context: any,
+    ) => {
       const user = await authenticate(context);
       return dataSource.getRepository(Chat).find({
         where: [
           { sender: { id: userId || user.userId } },
           { receiver: { id: userId || user.userId } },
         ],
-        relations: ["sender", "receiver", "messages"],
+        relations: ["sender", "receiver", "messages", "messages.sender"],
         order: { updatedAt: "DESC" },
       });
     },
-    getAllChats: async (_: any, {limit,offSet}:{limit:number,offSet:number}, context: any) => {
-      const [chats,total] = await dataSource.getRepository(Chat).findAndCount({
-        relations: ["sender", "receiver", "messages","messages.sender"],
+    getAllChats: async (
+      _: any,
+      { limit, offSet }: { limit: number; offSet: number },
+      context: any,
+    ) => {
+      const [chats, total] = await dataSource.getRepository(Chat).findAndCount({
+        relations: ["sender", "receiver", "messages", "messages.sender"],
         order: { updatedAt: "DESC" },
         skip: offSet,
         take: limit,
       });
-      return {chats,total};
-    }
+      return { chats, total };
+    },
   },
 
   Mutation: {
@@ -75,14 +83,14 @@ const chatResolvers = {
       const userRepo = dataSource.getRepository(User);
       const messageRepo = dataSource.getRepository(Message);
       const notificationRepository = dataSource.getRepository(Notification);
-      const chat = await dataSource.getRepository(Chat).findOne({ 
-        where:{id: chatId },
-        relations: ["sender", "receiver"]
+      const chat = await dataSource.getRepository(Chat).findOne({
+        where: { id: chatId },
+        relations: ["sender", "receiver"],
       });
-      if (!chat) throw new Error('Chat not found');
+      if (!chat) throw new Error("Chat not found");
 
-      const sender = await userRepo.findOne({ where:{id: ctxUser.userId} });
-      if (!sender) throw new Error('Sender not found');
+      const sender = await userRepo.findOne({ where: { id: ctxUser.userId } });
+      if (!sender) throw new Error("Sender not found");
 
       let receiver;
       if (chat.sender.id === sender.id) {
