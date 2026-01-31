@@ -24,7 +24,7 @@ const notification = gql`
     limit: Int
   }
   type Query {
-    getNotifications(userId: ID!): NotificationReturn!
+    getNotifications(userId: ID! limit:Int offSet:Int): NotificationReturn!
     getNotification(id: ID!): Notification
     getAdminNotifications(filter: NotificationFilter): NotificationReturn!
   }
