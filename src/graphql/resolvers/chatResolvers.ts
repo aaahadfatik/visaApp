@@ -3,7 +3,7 @@ import { dataSource } from "../../datasource";
 import { authenticate } from "../../utils/authUtils";
 import { In } from "typeorm";
 import { pubsub } from "../../server";
-import { logger } from "utils/logger";
+import { logger } from "../../utils/logger";
 
 const chatResolvers = {
   Query: {
