@@ -38,6 +38,7 @@ const chatResolvers = {
   Mutation: {
     createChat: async (_: any, { receiverId }: any, context: any) => {
       const ctxUser = await authenticate(context);
+      console.log("Creating chat between", ctxUser.userId, "and", receiverId);
       const userRepo = dataSource.getRepository(User);
       const chatRepo = dataSource.getRepository(Chat);
 
