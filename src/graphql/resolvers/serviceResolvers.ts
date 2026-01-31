@@ -29,7 +29,6 @@ import {
 import { AttributeType, FormStatus } from "../../enum"; // Import your enum
 import { ILike } from "typeorm";
 import { pubsub } from "../../server";
-import { logger } from "../../utils/logger";
 
 const serviceRepo = dataSource.getRepository(Service);
 const categoryRepo = dataSource.getRepository(Category);
@@ -75,24 +74,24 @@ const serviceResolvers = {
                 (category) =>
                   category.title?.toLowerCase().includes(keyword) ||
                   category.visas?.some((visa) =>
-                    visa.title?.toLowerCase().includes(keyword)
-                  )
-              )
+                    visa.title?.toLowerCase().includes(keyword),
+                  ),
+              ),
           )
         : services;
 
       return filtered.map((service) => {
         const submissions =
           service.categories?.flatMap(
-            (category) => category.submissions ?? []
+            (category) => category.submissions ?? [],
           ) ?? [];
 
         const pendingSubmission = submissions.filter(
-          (s) => s.status === "UNDER_PROGRESS"
+          (s) => s.status === "UNDER_PROGRESS",
         ).length;
 
         const completedSubmission = submissions.filter(
-          (s) => s.status === "COMPLETED"
+          (s) => s.status === "COMPLETED",
         ).length;
 
         return {
@@ -120,7 +119,7 @@ const serviceResolvers = {
     },
     getCategoryById: async (
       _: any,
-      { id, search }: { id: string; search?: string }
+      { id, search }: { id: string; search?: string },
     ) => {
       const category = await categoryRepo.findOne({
         where: { id },
@@ -132,7 +131,7 @@ const serviceResolvers = {
       if (search) {
         const keyword = search.toLowerCase();
         category.visas = category.visas.filter((visa) =>
-          visa.title.toLowerCase().includes(keyword)
+          visa.title.toLowerCase().includes(keyword),
         );
       }
 
@@ -154,7 +153,7 @@ const serviceResolvers = {
         .leftJoinAndSelect(
           "form.attributes",
           "attributes",
-          "attributes.parentId IS NULL"
+          "attributes.parentId IS NULL",
         )
         .leftJoinAndSelect("attributes.children", "children")
         .where("visa.id = :id", { id })
@@ -165,7 +164,7 @@ const serviceResolvers = {
             ELSE 0 
           END
         `,
-          "ASC"
+          "ASC",
         )
         .addOrderBy("attributes.id", "ASC")
         .addOrderBy("children.id", "ASC") // Optional: preserve child order
@@ -178,7 +177,7 @@ const serviceResolvers = {
         .leftJoinAndSelect(
           "form.attributes",
           "attribute",
-          "attribute.parentId IS NULL"
+          "attribute.parentId IS NULL",
         )
         .leftJoinAndSelect("attribute.children", "children")
         .orderBy("form.id", "ASC")
@@ -194,7 +193,7 @@ const serviceResolvers = {
         .leftJoinAndSelect(
           "form.attributes",
           "attribute",
-          "attribute.parentId IS NULL" // only top‑level attributes
+          "attribute.parentId IS NULL", // only top‑level attributes
         )
         .leftJoinAndSelect("attribute.children", "children")
         .orderBy("CASE WHEN children.id IS NULL THEN 0 ELSE 1 END", "ASC")
@@ -203,14 +202,14 @@ const serviceResolvers = {
     },
     getFormByCategoryId: async (
       _: any,
-      { categoryId }: { categoryId: string }
+      { categoryId }: { categoryId: string },
     ) => {
       const form = await formRepo
         .createQueryBuilder("form")
         .leftJoinAndSelect(
           "form.attributes",
           "attribute",
-          "attribute.parentId IS NULL" // only top‑level attributes
+          "attribute.parentId IS NULL", // only top‑level attributes
         )
         .leftJoinAndSelect("attribute.children", "children")
         .leftJoinAndSelect("form.category", "category")
@@ -230,7 +229,7 @@ const serviceResolvers = {
         limit: number;
         offset: number;
         filter?: FormFilter;
-      }
+      },
     ) => {
       if (limit <= 0) {
         throw new Error("Limit must be greater than 0");
@@ -276,7 +275,7 @@ const serviceResolvers = {
               ? new Date(filter.startDate)
               : new Date("1970-01-01"),
             endDate: filter.endDate ? new Date(filter.endDate) : new Date(),
-          }
+          },
         );
       }
 
@@ -291,7 +290,7 @@ const serviceResolvers = {
             OR visa.referenceNumber ILIKE :search
           )
           `,
-          { search }
+          { search },
         );
       }
 
@@ -316,13 +315,13 @@ const serviceResolvers = {
     getUserSubmittedForms: async (_: any, { userId }: { userId: string }) => {
       const submissionRepo = dataSource.getRepository(FormSubmission);
       const submissions = await submissionRepo
-      .createQueryBuilder("submission")
-      .leftJoinAndSelect("submission.form", "form")
-      .leftJoinAndSelect("submission.category", "category") // join category
-      .leftJoinAndSelect("category.service", "service") // join service via category
-      .leftJoinAndSelect("submission.documents", "documents")
-      .orderBy("submission.createdAt", "DESC")
-      .where("submission.createdBy = :userId", { userId })
+        .createQueryBuilder("submission")
+        .leftJoinAndSelect("submission.form", "form")
+        .leftJoinAndSelect("submission.category", "category") // join category
+        .leftJoinAndSelect("category.service", "service") // join service via category
+        .leftJoinAndSelect("submission.documents", "documents")
+        .orderBy("submission.createdAt", "DESC")
+        .where("submission.createdBy = :userId", { userId })
         .getMany();
 
       return submissions.map((s) => ({
@@ -341,26 +340,26 @@ const serviceResolvers = {
                 : null,
             }
           : null,
-      }));        
+      }));
     },
     getUserSubmittedPendingForms: async (
       _: any,
-      { userId }: { userId: string }
+      { userId }: { userId: string },
     ) => {
       const submissionRepo = dataSource.getRepository(FormSubmission);
       const submissions = await submissionRepo
-      .createQueryBuilder("submission")
-      .leftJoinAndSelect("submission.form", "form")
-      .leftJoinAndSelect("submission.category", "category") // join category
-      .leftJoinAndSelect("category.service", "service") // join service via category
-      .leftJoinAndSelect("submission.documents", "documents")
-      .orderBy("submission.createdAt", "DESC")
-      .where("submission.createdBy = :userId", { userId })
-      .andWhere("submission.status = :status", {
-        status: FormStatus.UNDER_PROGRESS,
-      })
-      .getMany();
-        
+        .createQueryBuilder("submission")
+        .leftJoinAndSelect("submission.form", "form")
+        .leftJoinAndSelect("submission.category", "category") // join category
+        .leftJoinAndSelect("category.service", "service") // join service via category
+        .leftJoinAndSelect("submission.documents", "documents")
+        .orderBy("submission.createdAt", "DESC")
+        .where("submission.createdBy = :userId", { userId })
+        .andWhere("submission.status = :status", {
+          status: FormStatus.UNDER_PROGRESS,
+        })
+        .getMany();
+
       return submissions.map((s) => ({
         id: s.id,
         status: s.status,
@@ -377,26 +376,25 @@ const serviceResolvers = {
                 : null,
             }
           : null,
-      }));        
-        
+      }));
     },
     getSubmittedFormById: async (_: any, { id }: { id: string }) => {
       const submission = await submissionRepo
-      .createQueryBuilder("submission")
-      .leftJoinAndSelect("submission.form", "form")
-      .leftJoinAndSelect("submission.category", "category") // join category
-      .leftJoinAndSelect("category.service", "service") // join service via category
-      .leftJoinAndSelect("submission.documents", "documents")
-      .orderBy("submission.createdAt", "DESC")
-      .where("submission.id = :id", {id})
-      .getOne(); 
-    
+        .createQueryBuilder("submission")
+        .leftJoinAndSelect("submission.form", "form")
+        .leftJoinAndSelect("submission.category", "category") // join category
+        .leftJoinAndSelect("category.service", "service") // join service via category
+        .leftJoinAndSelect("submission.documents", "documents")
+        .orderBy("submission.createdAt", "DESC")
+        .where("submission.id = :id", { id })
+        .getOne();
+
       if (!submission) {
         throw new Error("Submission not found");
       }
-    
-     return submission;
-    },    
+
+      return submission;
+    },
     getSubmittedFormsStatistics: async (_: any, __: any) => {
       const submissionRepo = dataSource.getRepository(FormSubmission);
 
@@ -435,7 +433,7 @@ const serviceResolvers = {
 
         query.andWhere(
           "submission.createdAt IS NULL OR submission.createdAt BETWEEN :start AND :end",
-          { start, end }
+          { start, end },
         );
       }
 
@@ -460,7 +458,7 @@ const serviceResolvers = {
     },
     getSubmittedFromAppicationStatusGraph: async (
       _: any,
-      { year }: { year?: string }
+      { year }: { year?: string },
     ) => {
       // 1️⃣ Build base query
       let query = submissionRepo.createQueryBuilder("submission");
@@ -474,7 +472,7 @@ const serviceResolvers = {
           {
             start,
             end,
-          }
+          },
         );
       }
 
@@ -520,7 +518,7 @@ const serviceResolvers = {
     createService: async (
       _: any,
       { input }: { input: CreateServiceInput },
-      context: any
+      context: any,
     ) => {
       await authenticate(context);
       const service = serviceRepo.create({
@@ -568,7 +566,7 @@ const serviceResolvers = {
     },
     createCategory: async (
       _: any,
-      { input }: { input: CreateCategoryInput }
+      { input }: { input: CreateCategoryInput },
     ) => {
       const categoryRepo = dataSource.getRepository(Category);
       const serviceRepo = dataSource.getRepository(Service);
@@ -593,7 +591,7 @@ const serviceResolvers = {
     },
     updateCategory: async (
       _: any,
-      { input }: { input: UpdateCategoryInput }
+      { input }: { input: UpdateCategoryInput },
     ) => {
       const category = await categoryRepo.findOne({
         where: { id: input.id },
@@ -671,8 +669,6 @@ const serviceResolvers = {
       const category = await categoryRepo.findOne({
         where: { id: input.categoryId },
       });
-      logger.info("Creating form for category ID:", input.categoryId);
-      logger.info("   category:", category);
       if (!category) throw new Error("category not found");
 
       const form = formRepo.create({ category });
@@ -681,7 +677,7 @@ const serviceResolvers = {
       async function createAttribute(
         attrInput: FormAttributeInput,
         form: Form,
-        parent?: FormAttribute
+        parent?: FormAttribute,
       ): Promise<FormAttribute> {
         // Map input type string to enum, fallback to FIELD if unknown
         const typeEnum =
@@ -730,7 +726,7 @@ const serviceResolvers = {
     submitForm: async (
       _: any,
       { input }: { input: SubmitFormInput },
-      context: any
+      context: any,
     ) => {
       const formRepo = dataSource.getRepository(Form);
       const submissionRepo = dataSource.getRepository(FormSubmission);
@@ -789,7 +785,7 @@ const serviceResolvers = {
     updateApplication: async (
       _: any,
       { applicationId }: { applicationId: string },
-      context: any
+      context: any,
     ) => {
       const ctxUser = await authenticate(context);
       if (!ctxUser) {
@@ -822,7 +818,7 @@ const serviceResolvers = {
         await sendNotification(
           user.fcmToken,
           "Application Status Updated",
-          "Your application has been marked as completed."
+          "Your application has been marked as completed.",
         );
       } else {
         console.warn(`User with id ${user.id} does not have an FCM token.`);
@@ -845,7 +841,7 @@ const serviceResolvers = {
         reasonForRejection: string;
         reasonForReturn: string;
       },
-      context: any
+      context: any,
     ) => {
       const ctxUser = await authenticate(context);
       if (!ctxUser) {
@@ -891,7 +887,6 @@ const serviceResolvers = {
       await pubsub.publish("NEW_NOTIFICATION", {
         newNotification: saveNotification,
       });
-
 
       return await submissionRepo.save(submission);
     },

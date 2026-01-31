@@ -1,5 +1,4 @@
-import express from 'express';
-import { logger } from '../utils/logger';
+import express from "express";
 
 const router = express.Router();
 
@@ -8,22 +7,21 @@ const router = express.Router();
  * Nomod redirects here after successful payment
  * This page then redirects to the mobile app
  */
-router.get('/payment/success', (req: express.Request, res: express.Response) => {
-  logger.info('✅ Payment success redirect accessed');
-  logger.info('Query params:', req.query);
-  
-  // Extract our internal payment ID from query params (included in the URL we sent to Nomod)
-  // Also check for Nomod's own IDs as fallback
-  const paymentId = String(req.query.paymentId || req.query.id || req.query.reference_id || '');
-  const status = String(req.query.status || 'paid');
-  
-  // Construct deep link to open mobile app (URL encode query parameters)
-  const deepLink = `uaevisaapp://payment/success?paymentId=${encodeURIComponent(paymentId)}&status=${encodeURIComponent(status)}`;
-  
-  logger.info('Redirecting to:', deepLink);
-  
-  // Send HTML page with auto-redirect
-  res.send(`
+router.get(
+  "/payment/success",
+  (req: express.Request, res: express.Response) => {
+    // Extract our internal payment ID from query params (included in the URL we sent to Nomod)
+    // Also check for Nomod's own IDs as fallback
+    const paymentId = String(
+      req.query.paymentId || req.query.id || req.query.reference_id || "",
+    );
+    const status = String(req.query.status || "paid");
+
+    // Construct deep link to open mobile app (URL encode query parameters)
+    const deepLink = `uaevisaapp://payment/success?paymentId=${encodeURIComponent(paymentId)}&status=${encodeURIComponent(status)}`;
+
+    // Send HTML page with auto-redirect
+    res.send(`
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -119,28 +117,30 @@ router.get('/payment/success', (req: express.Request, res: express.Response) => 
     </body>
     </html>
   `);
-});
+  },
+);
 
 /**
  * Payment Failure Redirect
  * Nomod redirects here after failed payment
  */
-router.get('/payment/failure', (req: express.Request, res: express.Response) => {
-  logger.info('❌ Payment failure redirect accessed');
-  logger.info('Query params:', req.query);
-  
-  // Extract our internal payment ID from query params (included in the URL we sent to Nomod)
-  // Also check for Nomod's own IDs as fallback
-  const paymentId = String(req.query.paymentId || req.query.id || req.query.reference_id || '');
-  const status = String(req.query.status || 'failed');
-  const errorMessage = String(req.query.error || req.query.message || 'Payment was not completed');
-  
-  // Construct deep link to open mobile app (URL encode all query parameters)
-  const deepLink = `uaevisaapp://payment/failure?paymentId=${encodeURIComponent(paymentId)}&status=${encodeURIComponent(status)}&error=${encodeURIComponent(errorMessage)}`;
-  
-  logger.info('Redirecting to:', deepLink);
-  
-  res.send(`
+router.get(
+  "/payment/failure",
+  (req: express.Request, res: express.Response) => {
+    // Extract our internal payment ID from query params (included in the URL we sent to Nomod)
+    // Also check for Nomod's own IDs as fallback
+    const paymentId = String(
+      req.query.paymentId || req.query.id || req.query.reference_id || "",
+    );
+    const status = String(req.query.status || "failed");
+    const errorMessage = String(
+      req.query.error || req.query.message || "Payment was not completed",
+    );
+
+    // Construct deep link to open mobile app (URL encode all query parameters)
+    const deepLink = `uaevisaapp://payment/failure?paymentId=${encodeURIComponent(paymentId)}&status=${encodeURIComponent(status)}&error=${encodeURIComponent(errorMessage)}`;
+
+    res.send(`
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -234,6 +234,7 @@ router.get('/payment/failure', (req: express.Request, res: express.Response) => 
     </body>
     </html>
   `);
-});
+  },
+);
 
 export default router;

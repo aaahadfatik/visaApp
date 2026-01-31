@@ -1,22 +1,22 @@
-import { ApolloServer } from 'apollo-server-express';
-import { typeDefs } from './graphql/typeDefs';
-import * as resolvers from './graphql/resolvers';
-import { dataSource } from './datasource'; // Import the correct dataSource
-import { verifyToken } from './utils/authUtils';
-import express from 'express';
-import { Role, User } from './entity';
-import { execute, subscribe } from 'graphql';
-import { makeExecutableSchema } from '@graphql-tools/schema'; 
-import { SubscriptionServer } from 'subscriptions-transport-ws';
-import { PubSub } from 'graphql-subscriptions';
-import { createServer } from 'http';
-import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
-import admin from './firebase';
-import {logger} from './utils/logger'
-import { createPaymentLink, getPaymentStatus } from './service/nomodService';
-import paymentRedirectRoutes from './routes/paymentRedirect';
+import { ApolloServer } from "apollo-server-express";
+import { typeDefs } from "./graphql/typeDefs";
+import * as resolvers from "./graphql/resolvers";
+import { dataSource } from "./datasource"; // Import the correct dataSource
+import { verifyToken } from "./utils/authUtils";
+import express from "express";
+import { Role, User } from "./entity";
+import { execute, subscribe } from "graphql";
+import { makeExecutableSchema } from "@graphql-tools/schema";
+import { SubscriptionServer } from "subscriptions-transport-ws";
+import { PubSub } from "graphql-subscriptions";
+import { createServer } from "http";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import admin from "./firebase";
+import { logger } from "./utils/logger";
+import { createPaymentLink, getPaymentStatus } from "./service/nomodService";
+import paymentRedirectRoutes from "./routes/paymentRedirect";
 import bcrypt from "bcrypt";
 
 const userRepository = dataSource.getRepository(User);
@@ -48,11 +48,11 @@ app.use(
 
     res.setHeader(
       "Access-Control-Allow-Methods",
-      "GET, POST, PUT, DELETE, OPTIONS"
+      "GET, POST, PUT, DELETE, OPTIONS",
     );
     res.setHeader(
       "Access-Control-Allow-Headers",
-      "Content-Type, Authorization"
+      "Content-Type, Authorization",
     );
     res.setHeader("Access-Control-Allow-Credentials", "true");
 
@@ -62,7 +62,7 @@ app.use(
     }
 
     next();
-  }
+  },
 );
 
 app.use(express.json());
@@ -91,8 +91,6 @@ const server = new ApolloServer({
       const token = req.headers.authorization || "";
       const query = req.body?.query || req.query?.query || "";
       const isIntrospectionQuery = query.includes("__schema");
-      logger.info(`🚀 Incoming query: ${query}`);
-      logger.info(`🚀 isIntrospectionQuery: ${isIntrospectionQuery}`);
       if (isIntrospectionQuery) {
         return {}; // Return an empty context for introspection queries
       }
@@ -106,7 +104,7 @@ const server = new ApolloServer({
         req.body.query.includes("getCategoryById") ||
         req.body.query.includes("getVisas") ||
         req.body.query.includes("getVisaById");
-      
+
       if (isPublic) {
         return { isPublic };
       }
@@ -115,15 +113,9 @@ const server = new ApolloServer({
         throw new Error("Token not found");
       }
 
-      logger.info(`🚀 token from headers:${req.headers.authorization}`);
-
       const mainToken = token.substring(7);
-      logger.info(`🚀 mainToken:${mainToken}`);
 
       const { newToken, userId } = await verifyToken(mainToken);
-      logger.info(`🚀 newToken:${newToken}`);
-      logger.info(`🚀 userId:${userId}`);
-
       if (!userId) {
         throw new Error("Authentication failed");
       }
@@ -191,7 +183,7 @@ app.post(
       console.error("Upload error:", error);
       return res.status(500).json({ error: "Internal Server Error" });
     }
-  }
+  },
 );
 
 app.post(
@@ -273,7 +265,7 @@ app.post(
 
       res.status(500).json(errorResponse);
     }
-  }
+  },
 );
 
 app.get(
@@ -286,7 +278,7 @@ app.get(
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
-  }
+  },
 );
 
 dataSource
@@ -333,7 +325,7 @@ dataSource
       });
       await userRepository.save(adminUser);
       logger.info(
-        "✅ Created default admin user: superadmin@gmail.com / Password@1234"
+        "✅ Created default admin user: superadmin@gmail.com / Password@1234",
       );
     }
 
@@ -341,18 +333,18 @@ dataSource
     const httpServer = createServer(app);
 
     // Apply middleware
-    server.applyMiddleware({ 
-        app,
-        cors: {
-            credentials: true,
-            origin: [
-                'http://localhost:8080',
-                'https://studio.apollographql.com',
-                'http://localhost:3000', 
-                'http://localhost:3001',
-                'https://admin.alem.ae',
-            ],
-        }
+    server.applyMiddleware({
+      app,
+      cors: {
+        credentials: true,
+        origin: [
+          "http://localhost:8080",
+          "https://studio.apollographql.com",
+          "http://localhost:3000",
+          "http://localhost:3001",
+          "https://admin.alem.ae",
+        ],
+      },
     });
 
     // Set up WebSocket for handling GraphQL subscriptions
@@ -366,7 +358,7 @@ dataSource
       {
         server: httpServer,
         path: "/subscriptions", // WebSocket endpoint for subscriptions
-      }
+      },
     );
     //for images
     app.listen(4007, () => {
@@ -375,10 +367,10 @@ dataSource
     // fetchAndStoreData();
     httpServer.listen(4006, () => {
       console.log(
-        `🚀 Server ready at http://localhost:4006${server.graphqlPath}`
+        `🚀 Server ready at http://localhost:4006${server.graphqlPath}`,
       );
       console.log(
-        `🚀 Subscriptions ready at ws://localhost:4006/subscriptions`
+        `🚀 Subscriptions ready at ws://localhost:4006/subscriptions`,
       );
     });
   })
@@ -389,7 +381,7 @@ dataSource
 export const sendNotification = async (
   fcmToken: string,
   title: string,
-  body: string
+  body: string,
 ): Promise<void> => {
   const message = {
     notification: {
@@ -426,11 +418,9 @@ app.post("/send-fcm", async (req: express.Request, res: express.Response) => {
     res.status(200).json({ success: true, message: "Notification sent." });
   } catch (error) {
     console.error("FCM Error:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        error: error instanceof Error ? error.message : error,
-      });
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : error,
+    });
   }
 });
