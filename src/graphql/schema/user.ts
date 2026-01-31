@@ -170,7 +170,7 @@ type Mutation {
   createUser(input: UserInput!): User!
   updateUser(input: UpdateUserInput!): User!
   deleteUser(id: ID!): Boolean!
-  changePassword(oldPassword: String! newPassword: String!): Boolean!
+  changePassword(oldPassword: String newPassword: String!): Boolean!
 
   generateClientAccountNumber: String
   refreshToken(token: String!): AuthResponse

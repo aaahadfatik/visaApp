@@ -351,7 +351,7 @@ const userResolvers = {
       {
         oldPassword,
         newPassword,
-      }: { oldPassword: string; newPassword: string },
+      }: { oldPassword?: string; newPassword: string },
       context: any
     ) => {
       const authUser = await authenticate(context);
@@ -361,9 +361,12 @@ const userResolvers = {
       if (!user) throw new Error("User not found");
 
       // Validate old password
-      const validPassword = await bcrypt.compare(oldPassword, user.password);
-      if (!validPassword) throw new Error("Old password is incorrect");
-
+      let validPassword
+      if(oldPassword){
+        validPassword = await bcrypt.compare(oldPassword, user.password);
+        if (!validPassword) throw new Error("Old password is incorrect");
+      }
+      
       // Hash new password
       const saltRounds = 10;
       const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
