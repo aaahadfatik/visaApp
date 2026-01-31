@@ -10,6 +10,10 @@ const chat = gql`
     updatedAt: DateTime!
   }
 
+  type ChatReturn {
+    chats: [Chat!]!
+    total: Int
+  }
   type Message {
     id: ID!
     content: String!
@@ -22,6 +26,7 @@ const chat = gql`
    type Query {
     getChatById(id: ID!): Chat
     getUserChats: [Chat!]!
+    getAllChats(limit:Int offSet:Int): ChatReturn!
   }
 
    type Mutation {

@@ -24,6 +24,15 @@ const chatResolvers = {
         order: { updatedAt: "DESC" },
       });
     },
+    getAllChats: async (_: any, {limit,offSet}:{limit:number,offSet:number}, context: any) => {
+      const [chats,total] = await dataSource.getRepository(Chat).findAndCount({
+        relations: ["sender", "receiver", "messages"],
+        order: { updatedAt: "DESC" },
+        skip: offSet,
+        take: limit,
+      });
+      return {chats,total};
+    }
   },
 
   Mutation: {
