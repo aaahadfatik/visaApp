@@ -341,13 +341,9 @@ const userResolvers = {
     },
     changePassword: async (
       _: any,
-      { oldPassword, newPassword }: { oldPassword?: string; newPassword: string },
-      context: any
-    ) => {
-      const authUser = await authenticate(context);
-    
+      {email, oldPassword, newPassword }: {email?:string, oldPassword?: string; newPassword: string }) => {
       const user = await userRepository.findOne({
-        where: { id: authUser.userId },
+        where: { email },
       });
     
       if (!user) throw new Error("User not found");
