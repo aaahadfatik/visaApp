@@ -3,6 +3,7 @@ import { dataSource } from "../../datasource";
 import { authenticate } from "../../utils/authUtils";
 import { In } from "typeorm";
 import { pubsub } from "../../server";
+import { logger } from "utils/logger";
 
 const chatResolvers = {
   Query: {
@@ -38,7 +39,7 @@ const chatResolvers = {
   Mutation: {
     createChat: async (_: any, { receiverId }: any, context: any) => {
       const ctxUser = await authenticate(context);
-      console.log("Creating chat between", ctxUser.userId, "and", receiverId);
+      logger.info(`Creating chat between ${ctxUser.userId} and ${receiverId}`);
       const userRepo = dataSource.getRepository(User);
       const chatRepo = dataSource.getRepository(Chat);
 
