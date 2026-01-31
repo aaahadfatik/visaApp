@@ -89,6 +89,13 @@ const server = new ApolloServer({
   context: async ({ req, res }) => {
     try {
       const token = req.headers.authorization || "";
+      const query = req.body?.query || req.query?.query || "";
+      const isIntrospectionQuery = query.includes("__schema");
+      logger.info(`🚀 Incoming query: ${query}`);
+      logger.info(`🚀 isIntrospectionQuery: ${isIntrospectionQuery}`);
+      if (isIntrospectionQuery) {
+        return {}; // Return an empty context for introspection queries
+      }
       const isPublic =
         req.body.query.includes("login") ||
         req.body.query.includes("createUser") ||
@@ -99,15 +106,7 @@ const server = new ApolloServer({
         req.body.query.includes("getCategoryById") ||
         req.body.query.includes("getVisas") ||
         req.body.query.includes("getVisaById");
-
-      const query = req.body?.query || req.query?.query || "";
-      logger.info(`🚀 Incoming query: ${query}`);
-      const isIntrospectionQuery = query.includes("__schema");
-      logger.info(`🚀 isIntrospectionQuery: ${isIntrospectionQuery}`);
-      if (isIntrospectionQuery) {
-        return {}; // Return an empty context for introspection queries
-      }
-
+      
       if (isPublic) {
         return { isPublic };
       }
