@@ -768,6 +768,21 @@ const serviceResolvers = {
           });
         });
       }
+      // add notification
+      const user = await userRepository.findOne({
+        where: { id: ctxUser.userId },
+      });
+      if (!user) throw new Error("User not found");
+      const notification = notificationRepository.create({
+        name: "Form Submission",
+        message: "Your form has been submitted successfully",
+        user: user,
+      });
+      const saveNotification = await notificationRepository.save(notification);
+      // Publish to subscription
+      await pubsub.publish("NEW_NOTIFICATION", {
+        newNotification: saveNotification,
+      });
 
       return submission;
     },
@@ -860,6 +875,23 @@ const serviceResolvers = {
         submission.reasonForRejection = reasonForRejection;
         submission.updatedBy = ctxUser.userId;
       }
+
+      //add notification
+      const user = await userRepository.findOne({
+        where: { id: submission.createdBy },
+      });
+      if (!user) throw new Error("User not found");
+      const notification = notificationRepository.create({
+        name: "Application Status",
+        message: `Your application status has been updated to ${status}`,
+        user: user,
+      });
+      const saveNotification = await notificationRepository.save(notification);
+      // Publish to subscription
+      await pubsub.publish("NEW_NOTIFICATION", {
+        newNotification: saveNotification,
+      });
+
 
       return await submissionRepo.save(submission);
     },
