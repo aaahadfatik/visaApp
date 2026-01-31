@@ -165,36 +165,29 @@ const userResolvers = {
     },
     login: async (_: any, input: { email: string; password: string }) => {
       const { password, email } = input;
-
-      const user = await userRepository.findOne({
-        where: { email },
-        relations: ["role"],
-      });
-
+    
+      const user = await userRepository.findOne({ where: { email } });
       if (!user) throw new Error("User not found");
-      if (!password) throw new Error("Password is required");
-
-      // Validate password
-      const validPassword = await bcrypt.compare(password, user.password);
-
-      if (!validPassword) throw new Error("Invalid password");
-
-      // Generate JWT tokens
+    
+      const isValid = await bcrypt.compare(password, user.password);
+      if (!isValid) throw new Error("Invalid password");
+    
       const token = jwt.sign(
         { userId: user.id, email: user.email },
         process.env.JWT_SECRET!,
         { expiresIn: "30d" }
       );
+    
       const refreshToken = jwt.sign(
         { userId: user.id, email: user.email },
         process.env.JWT_REFRESH_SECRET!,
         { expiresIn: "30d" }
       );
-
-      // Update the user with the new refresh token
-      user.refreshToken = token; // Ensure refreshToken is defined in User entity
+    
+      // ✅ correct token assignment
+      user.refreshToken = refreshToken;
       await userRepository.save(user);
-      // Return the tokens and user details
+    
       return {
         token,
         refreshToken,
@@ -202,7 +195,7 @@ const userResolvers = {
           id: user.id,
           name: user.name,
           email: user.email,
-          roles: Role.name,
+          roles: user.role?.name,
           ClockedInAt: new Date(),
         },
       };
@@ -348,33 +341,28 @@ const userResolvers = {
     },
     changePassword: async (
       _: any,
-      {
-        oldPassword,
-        newPassword,
-      }: { oldPassword?: string; newPassword: string },
+      { oldPassword, newPassword }: { oldPassword?: string; newPassword: string },
       context: any
     ) => {
       const authUser = await authenticate(context);
+    
       const user = await userRepository.findOne({
         where: { id: authUser.userId },
       });
+    
       if (!user) throw new Error("User not found");
-
-      // Validate old password
-      let validPassword
-      if(oldPassword){
-        validPassword = await bcrypt.compare(oldPassword, user.password);
-        if (!validPassword) throw new Error("Old password is incorrect");
+    
+      if (oldPassword) {
+        const isValid = await bcrypt.compare(oldPassword, user.password);
+        if (!isValid) throw new Error("Old password is incorrect");
       }
-      const trimmedPassword = newPassword.trim();
-      // Hash new password
-      const saltRounds = 10;
-      const hashedPassword = await bcrypt.hash(trimmedPassword, saltRounds);
-
-      // Update user's password
-      user.password = hashedPassword;
+    
+      // hash new password
+      user.password = await bcrypt.hash(newPassword, 10);
+    
+      // IMPORTANT: use repository save
       await userRepository.save(user);
-
+    
       return true;
     },
     refreshToken: async (_: any, { token }: { token: string }) => {
