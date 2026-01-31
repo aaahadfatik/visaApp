@@ -25,7 +25,7 @@ const chat = gql`
 
    type Query {
     getChatById(id: ID!): Chat
-    getUserChats: [Chat!]!
+    getUserChats(userId:ID): [Chat!]!
     getAllChats(limit:Int offSet:Int): ChatReturn!
   }
 
