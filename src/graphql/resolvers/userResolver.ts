@@ -366,13 +366,13 @@ const userResolvers = {
         validPassword = await bcrypt.compare(oldPassword, user.password);
         if (!validPassword) throw new Error("Old password is incorrect");
       }
-      
+      const trimmedPassword = newPassword.trim();
       // Hash new password
       const saltRounds = 10;
-      const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+      const hashedPassword = await bcrypt.hash(trimmedPassword, saltRounds);
 
       // Update user's password
-      user.password = hashedNewPassword;
+      user.password = hashedPassword;
       await userRepository.save(user);
 
       return true;
