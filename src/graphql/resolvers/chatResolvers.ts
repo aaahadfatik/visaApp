@@ -26,7 +26,7 @@ const chatResolvers = {
     },
     getAllChats: async (_: any, {limit,offSet}:{limit:number,offSet:number}, context: any) => {
       const [chats,total] = await dataSource.getRepository(Chat).findAndCount({
-        relations: ["sender", "receiver", "messages"],
+        relations: ["sender", "receiver", "messages","messages.sender"],
         order: { updatedAt: "DESC" },
         skip: offSet,
         take: limit,
