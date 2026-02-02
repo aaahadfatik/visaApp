@@ -43,22 +43,31 @@ const categoryAttributeRepo = dataSource.getRepository(CategoryAttribute);
 
 const serviceResolvers = {
   FormSubmission: {
-    formId: (parent: FormSubmission) => {
-      // Return the form's id if form is loaded, otherwise return null
-      return parent.form?.id || null;
+    formId: (parent: any) => {
+      // If it's a mapped object, return formId directly, otherwise get from form relation
+      return parent.formId || parent.form?.id || null;
     },
-    createdBy: async (parent: { createdBy?: string }, _: any) => {
+    createdBy: async (parent: any, _: any) => {
+      // parent.createdBy might be an object or a string ID
       if (!parent.createdBy) return null;
+      if (typeof parent.createdBy === "object") return parent.createdBy;
       return userRepository.findOne({
         where: { id: parent.createdBy },
       });
     },
-    category: async (parent: FormSubmission) => {
-      // If category is already loaded, return it
+    category: async (parent: any) => {
       if (parent.category) return parent.category;
-      // If we have categoryId but category isn't loaded, fetch it
-      if (parent.categoryId) {
-        return categoryRepo.findOne({ where: { id: parent.categoryId } });
+      const catId = parent.categoryId || parent.category?.id;
+      if (catId) {
+        return categoryRepo.findOne({ where: { id: catId } });
+      }
+      return null;
+    },
+    visa: async (parent: any) => {
+      if (parent.visa) return parent.visa;
+      const vId = parent.visaId || parent.visa?.id;
+      if (vId) {
+        return visaRepo.findOne({ where: { id: vId }, relations: ["category"] });
       }
       return null;
     },
@@ -257,6 +266,8 @@ const serviceResolvers = {
         .createQueryBuilder("submission")
         .leftJoinAndSelect("submission.form", "form")
         .leftJoinAndSelect("submission.visa", "visa")
+        .leftJoinAndSelect("submission.category", "submissionCategory") // renamed alias to avoid conflict
+        .leftJoinAndSelect("submission.payment", "payment")
         .leftJoinAndSelect("visa.category", "category")
         .leftJoinAndSelect("submission.documents", "documents")
         .orderBy("submission.createdAt", "DESC")
@@ -312,16 +323,7 @@ const serviceResolvers = {
       const [submissions, totalCount] = await qb.getManyAndCount();
 
       return {
-        submissions: submissions.map((s) => ({
-          id: s.id,
-          formId: s.form?.id || null,
-          status: s.status,
-          visa: s.visa || null,
-          visaCategory: s.visa?.category?.title || null,
-          answers: s.answers,
-          createdAt: s.createdAt.toISOString(),
-          createdBy: s.createdBy,
-        })),
+        submissions,
         total: totalCount,
       };
     },
@@ -337,23 +339,7 @@ const serviceResolvers = {
         .where("submission.createdBy = :userId", { userId })
         .getMany();
 
-      return submissions.map((s) => ({
-        id: s.id,
-        status: s.status,
-        createdAt: s.createdAt.toISOString(),
-        category: s.category
-          ? {
-            id: s.category.id,
-            title: s.category.title,
-            service: s.category.service
-              ? {
-                id: s.category.service.id,
-                title: s.category.service.title,
-              }
-              : null,
-          }
-          : null,
-      }));
+      return submissions;
     },
     getUserSubmittedPendingForms: async (
       _: any,
@@ -373,23 +359,7 @@ const serviceResolvers = {
         })
         .getMany();
 
-      return submissions.map((s) => ({
-        id: s.id,
-        status: s.status,
-        createdAt: s.createdAt.toISOString(),
-        category: s.category
-          ? {
-            id: s.category.id,
-            title: s.category.title,
-            service: s.category.service
-              ? {
-                id: s.category.service.id,
-                title: s.category.service.title,
-              }
-              : null,
-          }
-          : null,
-      }));
+      return submissions;
     },
     getSubmittedFormById: async (_: any, { id }: { id: string }) => {
       const submission = await submissionRepo
