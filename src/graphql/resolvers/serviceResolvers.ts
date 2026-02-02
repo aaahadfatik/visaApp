@@ -38,7 +38,7 @@ const submissionRepo = dataSource.getRepository(FormSubmission);
 const documentRepo = dataSource.getRepository(Document);
 const notificationRepository = dataSource.getRepository(Notification);
 const userRepository = dataSource.getRepository(User);
-const visaRepository = dataSource.getRepository(Visa);
+const categoryRepository = dataSource.getRepository(Category);
 const categoryAttributeRepo = dataSource.getRepository(CategoryAttribute);
 
 const serviceResolvers = {
@@ -423,39 +423,39 @@ const serviceResolvers = {
       };
     },
     getServiceStatistics: async (_: any, { year }: { year?: string }) => {
-      const query = visaRepository
-        .createQueryBuilder("visa")
-        .leftJoin("visa.submissions", "submission");
+  const query = categoryRepository
+    .createQueryBuilder("category")
+    .leftJoin("category.submissions", "submission");
 
-      if (year) {
-        const start = new Date(`${year}-01-01T00:00:00.000Z`);
-        const end = new Date(`${year}-12-31T23:59:59.999Z`);
+  if (year) {
+    const start = new Date(`${year}-01-01T00:00:00.000Z`);
+    const end = new Date(`${year}-12-31T23:59:59.999Z`);
 
-        query.andWhere(
-          "submission.createdAt IS NULL OR submission.createdAt BETWEEN :start AND :end",
-          { start, end },
-        );
-      }
+    query.andWhere(
+      "submission.createdAt IS NULL OR submission.createdAt BETWEEN :start AND :end",
+      { start, end }
+    );
+  }
 
-      const statistics = await query
-        .select([
-          "visa.id AS serviceid",
-          "visa.title AS title",
-          "COUNT(submission.id) AS totalapplications",
-        ])
-        .groupBy("visa.id")
-        .addGroupBy("visa.title")
-        .orderBy("visa.title", "ASC")
-        .getRawMany();
+  const statistics = await query
+    .select([
+      "category.id AS serviceid",
+      "category.title AS title",
+      "COUNT(submission.id) AS totalapplications",
+    ])
+    .groupBy("category.id")
+    .addGroupBy("category.title")
+    .orderBy("category.title", "ASC")
+    .getRawMany();
 
-      return {
-        statistics: statistics.map((s) => ({
-          serciveId: s.serviceid, // schema typo preserved
-          title: s.title,
-          totalApplications: Number(s.totalapplications),
-        })),
-      };
-    },
+  return {
+    statistics: statistics.map((s) => ({
+      serciveId: s.serviceid, // typo preserved
+      title: s.title,
+      totalApplications: Number(s.totalapplications),
+    })),
+  };
+},
     getSubmittedFromAppicationStatusGraph: async (
       _: any,
       { year }: { year?: string },
