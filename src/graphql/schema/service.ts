@@ -90,7 +90,7 @@ const service = gql`
 
   type FormSubmission {
     id: ID!
-    formId: ID!
+    formId: ID
     answers: [FormAnswer!]!
     documents: [Document!]
     status: FormStatus

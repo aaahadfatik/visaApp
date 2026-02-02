@@ -314,7 +314,7 @@ const serviceResolvers = {
       return {
         submissions: submissions.map((s) => ({
           id: s.id,
-          formId: s.form.id,
+          formId: s.form?.id || null,
           status: s.status,
           visa: s.visa || null,
           visaCategory: s.visa?.category?.title || null,
