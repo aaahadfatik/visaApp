@@ -43,11 +43,24 @@ const categoryAttributeRepo = dataSource.getRepository(CategoryAttribute);
 
 const serviceResolvers = {
   FormSubmission: {
+    formId: (parent: FormSubmission) => {
+      // Return the form's id if form is loaded, otherwise return null
+      return parent.form?.id || null;
+    },
     createdBy: async (parent: { createdBy?: string }, _: any) => {
       if (!parent.createdBy) return null;
       return userRepository.findOne({
         where: { id: parent.createdBy },
       });
+    },
+    category: async (parent: FormSubmission) => {
+      // If category is already loaded, return it
+      if (parent.category) return parent.category;
+      // If we have categoryId but category isn't loaded, fetch it
+      if (parent.categoryId) {
+        return categoryRepo.findOne({ where: { id: parent.categoryId } });
+      }
+      return null;
     },
   },
 
@@ -68,16 +81,16 @@ const serviceResolvers = {
 
       const filtered = keyword
         ? services.filter(
-            (service) =>
-              service.title.toLowerCase().includes(keyword) ||
-              service.categories?.some(
-                (category) =>
-                  category.title?.toLowerCase().includes(keyword) ||
-                  category.visas?.some((visa) =>
-                    visa.title?.toLowerCase().includes(keyword),
-                  ),
-              ),
-          )
+          (service) =>
+            service.title.toLowerCase().includes(keyword) ||
+            service.categories?.some(
+              (category) =>
+                category.title?.toLowerCase().includes(keyword) ||
+                category.visas?.some((visa) =>
+                  visa.title?.toLowerCase().includes(keyword),
+                ),
+            ),
+        )
         : services;
 
       return filtered.map((service) => {
@@ -330,15 +343,15 @@ const serviceResolvers = {
         createdAt: s.createdAt.toISOString(),
         category: s.category
           ? {
-              id: s.category.id,
-              title: s.category.title,
-              service: s.category.service
-                ? {
-                    id: s.category.service.id,
-                    title: s.category.service.title,
-                  }
-                : null,
-            }
+            id: s.category.id,
+            title: s.category.title,
+            service: s.category.service
+              ? {
+                id: s.category.service.id,
+                title: s.category.service.title,
+              }
+              : null,
+          }
           : null,
       }));
     },
@@ -366,15 +379,15 @@ const serviceResolvers = {
         createdAt: s.createdAt.toISOString(),
         category: s.category
           ? {
-              id: s.category.id,
-              title: s.category.title,
-              service: s.category.service
-                ? {
-                    id: s.category.service.id,
-                    title: s.category.service.title,
-                  }
-                : null,
-            }
+            id: s.category.id,
+            title: s.category.title,
+            service: s.category.service
+              ? {
+                id: s.category.service.id,
+                title: s.category.service.title,
+              }
+              : null,
+          }
           : null,
       }));
     },
@@ -383,7 +396,9 @@ const serviceResolvers = {
         .createQueryBuilder("submission")
         .leftJoinAndSelect("submission.form", "form")
         .leftJoinAndSelect("submission.visa", "visa")
-        .leftJoinAndSelect("visa.category", "category") // join category
+        .leftJoinAndSelect("submission.category", "submissionCategory") // join category directly from submission
+        .leftJoinAndSelect("submission.payment", "payment") // join payment
+        .leftJoinAndSelect("visa.category", "category") // join category from visa
         .leftJoinAndSelect("category.service", "service") // join service via category
         .leftJoinAndSelect("submission.documents", "documents")
         .orderBy("submission.createdAt", "DESC")
@@ -424,39 +439,39 @@ const serviceResolvers = {
       };
     },
     getServiceStatistics: async (_: any, { year }: { year?: string }) => {
-  const query = categoryRepository
-    .createQueryBuilder("category")
-    .leftJoin("category.submissions", "submission");
+      const query = categoryRepository
+        .createQueryBuilder("category")
+        .leftJoin("category.submissions", "submission");
 
-  if (year) {
-    const start = new Date(`${year}-01-01T00:00:00.000Z`);
-    const end = new Date(`${year}-12-31T23:59:59.999Z`);
+      if (year) {
+        const start = new Date(`${year}-01-01T00:00:00.000Z`);
+        const end = new Date(`${year}-12-31T23:59:59.999Z`);
 
-    query.andWhere(
-      "submission.createdAt IS NULL OR submission.createdAt BETWEEN :start AND :end",
-      { start, end }
-    );
-  }
+        query.andWhere(
+          "submission.createdAt IS NULL OR submission.createdAt BETWEEN :start AND :end",
+          { start, end }
+        );
+      }
 
-  const statistics = await query
-    .select([
-      "category.id AS serviceid",
-      "category.title AS title",
-      "COUNT(submission.id) AS totalapplications",
-    ])
-    .groupBy("category.id")
-    .addGroupBy("category.title")
-    .orderBy("category.title", "ASC")
-    .getRawMany();
+      const statistics = await query
+        .select([
+          "category.id AS serviceid",
+          "category.title AS title",
+          "COUNT(submission.id) AS totalapplications",
+        ])
+        .groupBy("category.id")
+        .addGroupBy("category.title")
+        .orderBy("category.title", "ASC")
+        .getRawMany();
 
-  return {
-    statistics: statistics.map((s) => ({
-      serciveId: s.serviceid, // typo preserved
-      title: s.title,
-      totalApplications: Number(s.totalapplications),
-    })),
-  };
-},
+      return {
+        statistics: statistics.map((s) => ({
+          serciveId: s.serviceid, // typo preserved
+          title: s.title,
+          totalApplications: Number(s.totalapplications),
+        })),
+      };
+    },
     getSubmittedFromAppicationStatusGraph: async (
       _: any,
       { year }: { year?: string },
@@ -683,7 +698,7 @@ const serviceResolvers = {
         // Map input type string to enum, fallback to FIELD if unknown
         const typeEnum =
           AttributeType[
-            attrInput.type.toUpperCase() as keyof typeof AttributeType
+          attrInput.type.toUpperCase() as keyof typeof AttributeType
           ] || AttributeType.FIELD;
 
         // Create attribute entity
