@@ -816,13 +816,13 @@ const serviceResolvers = {
     updateFormSubmissionStatus: async (
       _: any,
       {
-        submissionId,
+        id,
         status,
         paymentId,
         reasonForReturn,
         reasonForRejection,
       }: {
-        submissionId: string;
+        id: string;
         status: FormStatus;
         paymentId: string;
         reasonForRejection: string;
@@ -834,9 +834,9 @@ const serviceResolvers = {
       if (!ctxUser) {
         throw new Error("Unauthorized access");
       }
-      logger.info("Submission id.....", submissionId);
+      logger.info("Submission id.....", id);
       const submission = await submissionRepo.findOne({
-        where: { id: submissionId },
+        where: { id },
       });
       if (!submission) throw new Error("Submission not found");
       logger.info("Submission found", submission);
