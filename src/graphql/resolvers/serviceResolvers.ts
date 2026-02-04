@@ -29,6 +29,7 @@ import {
 import { AttributeType, FormStatus } from "../../enum"; // Import your enum
 import { ILike } from "typeorm";
 import { pubsub } from "../../server";
+import { logger } from "../../utils/logger";
 
 const serviceRepo = dataSource.getRepository(Service);
 const categoryRepo = dataSource.getRepository(Category);
@@ -838,7 +839,7 @@ const serviceResolvers = {
         where: { id: submissionId },
       });
       if (!submission) throw new Error("Submission not found");
-
+      logger.info("Submission found", submission);
       submission.status = status;
       if (paymentId) {
         submission.paymentId = paymentId;
