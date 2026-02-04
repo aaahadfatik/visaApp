@@ -834,7 +834,7 @@ const serviceResolvers = {
       if (!ctxUser) {
         throw new Error("Unauthorized access");
       }
-
+      logger.info("Submission id.....", submissionId);
       const submission = await submissionRepo.findOne({
         where: { id: submissionId },
       });
