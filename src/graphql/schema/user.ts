@@ -36,6 +36,7 @@ type User {
   documents: [Document!]
   notifications: [Notification!]
   applications: [Application!]
+  submissions: [FormSubmission!]
   fcmToken: String
   createdAt: DateTime!
   submittedFromCount: Int!

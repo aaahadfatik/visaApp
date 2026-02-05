@@ -24,6 +24,15 @@ const submittedFomrRepository = dataSource.getRepository(FormSubmission);
 const otpRepository = dataSource.getRepository("OTP");
 
 const userResolvers = {
+  User: {
+    submissions: async (parent: User) => {
+      if (parent.submissions) return parent.submissions;
+      return await submittedFomrRepository.find({
+        where: { createdBy: parent.id },
+        relations: ["form", "category", "documents"],
+      });
+    },
+  },
   Query: {
     getRoles: async (_: any) => {
       const userRoles = await roleRepository.find();
@@ -36,7 +45,7 @@ const userResolvers = {
       // }
       return await userRepository.findOne({
         where: { id },
-        relations: ["documents", "notifications", "applications"],
+        relations: ["documents", "notifications", "applications", "submissions"],
       });
     },
     getUsers: async (
@@ -65,7 +74,7 @@ const userResolvers = {
         take: limit,
         skip: offset,
         order: { createdAt: "DESC" },
-        relations: ["documents", "notifications", "applications"],
+        relations: ["documents", "notifications", "applications", "submissions"],
       });
       if (!users) throw new Error("Users not found");
       const usersWithCounts = await Promise.all(
@@ -165,29 +174,29 @@ const userResolvers = {
     },
     login: async (_: any, input: { email: string; password: string }) => {
       const { password, email } = input;
-    
+
       const user = await userRepository.findOne({ where: { email } });
       if (!user) throw new Error("User not found");
-    
+
       const isValid = await bcrypt.compare(password, user.password);
       if (!isValid) throw new Error("Invalid password");
-    
+
       const token = jwt.sign(
         { userId: user.id, email: user.email },
         process.env.JWT_SECRET!,
         { expiresIn: "30d" }
       );
-    
+
       const refreshToken = jwt.sign(
         { userId: user.id, email: user.email },
         process.env.JWT_REFRESH_SECRET!,
         { expiresIn: "30d" }
       );
-    
+
       // ✅ correct token assignment
       user.refreshToken = refreshToken;
       await userRepository.save(user);
-    
+
       return {
         token,
         refreshToken,
@@ -341,24 +350,24 @@ const userResolvers = {
     },
     changePassword: async (
       _: any,
-      {email, oldPassword, newPassword }: {email?:string, oldPassword?: string; newPassword: string }) => {
+      { email, oldPassword, newPassword }: { email?: string, oldPassword?: string; newPassword: string }) => {
       const user = await userRepository.findOne({
         where: { email },
       });
-    
+
       if (!user) throw new Error("User not found");
-    
+
       if (oldPassword) {
         const isValid = await bcrypt.compare(oldPassword, user.password);
         if (!isValid) throw new Error("Old password is incorrect");
       }
-    
+
       // hash new password
       user.password = await bcrypt.hash(newPassword, 10);
-    
+
       // IMPORTANT: use repository save
       await userRepository.save(user);
-    
+
       return true;
     },
     refreshToken: async (_: any, { token }: { token: string }) => {
@@ -388,7 +397,7 @@ const userResolvers = {
         throw new Error("Invalid or expired refresh token");
       }
     },
-    verifyEmail: async ( _: any, { email }: { email: string }): Promise<string> => {
+    verifyEmail: async (_: any, { email }: { email: string }): Promise<string> => {
       try {
         // Normalize email
         const normalizedEmail = email.trim().toLowerCase();
@@ -451,7 +460,7 @@ const userResolvers = {
         throw new Error(error.message || "Failed to verify OTP");
       }
     },
-    verifyEmailOTP: async ( _: any,{ email, otp }: { email: string; otp: string }): Promise<{ success: boolean; message: string; resetToken?: string }> => {
+    verifyEmailOTP: async (_: any, { email, otp }: { email: string; otp: string }): Promise<{ success: boolean; message: string; resetToken?: string }> => {
       try {
         const normalizedEmail = email.trim().toLowerCase();
 
@@ -499,7 +508,7 @@ const userResolvers = {
         throw new Error(error.message || "Failed to verify OTP");
       }
     },
-    forgetPassword: async (_: any, { email }: { email: string}) => {
+    forgetPassword: async (_: any, { email }: { email: string }) => {
       try {
         // Normalize email
         const normalizedEmail = email.trim().toLowerCase();

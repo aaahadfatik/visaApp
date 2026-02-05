@@ -1,5 +1,5 @@
-import { 
-  Entity, PrimaryGeneratedColumn,OneToMany, Column,
+import {
+  Entity, PrimaryGeneratedColumn, OneToMany, Column,
   ManyToOne
 } from 'typeorm';
 import BaseEntity from './BaseEntity';
@@ -7,13 +7,14 @@ import Role from './Role';
 import Document from './Document';
 import Notification from './Notification';
 import Application from './Application';
+import FormSubmission from './FormSubmission';
 
 @Entity()
-export default class User extends BaseEntity{
+export default class User extends BaseEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({nullable: true})
+  @Column({ nullable: true })
   name?: string;
 
   @Column()
@@ -22,7 +23,7 @@ export default class User extends BaseEntity{
   @Column()
   email!: string;
 
-  @Column({nullable:true})
+  @Column({ nullable: true })
   picture!: string;
 
   @Column({ nullable: true })
@@ -34,19 +35,19 @@ export default class User extends BaseEntity{
   @Column()
   password!: string;
 
-  @Column({default: false})
+  @Column({ default: false })
   isSalary?: boolean;
 
-  @Column({default: false})
+  @Column({ default: false })
   isExpirence?: boolean;
 
   @Column({ default: 0 })
   otp!: number
-  
+
   @Column({ default: false })
   isActive?: boolean;
 
-  @Column({default: false})
+  @Column({ default: false })
   isCompany?: boolean;
 
   @Column({ default: false })
@@ -59,20 +60,23 @@ export default class User extends BaseEntity{
   refreshToken!: string;
 
   @Column({ nullable: true })
-  roleId?: string; 
+  roleId?: string;
 
-  @Column({nullable:true})
+  @Column({ nullable: true })
   fcmToken?: string
-  
+
   @ManyToOne(() => Role, (role) => role.users, { eager: true })
   role!: Role;
 
   @OneToMany(() => Document, document => document.user)
-documents!: Document[];
+  documents!: Document[];
 
   @OneToMany(() => Notification, (notification) => notification.user, { nullable: true })
-  notifications?: Notification[]; 
+  notifications?: Notification[];
 
   @OneToMany(() => Application, (a) => a.applicant)
   applications!: Application[];
+
+  @OneToMany(() => FormSubmission, (submission) => submission.user)
+  submissions!: FormSubmission[];
 }
