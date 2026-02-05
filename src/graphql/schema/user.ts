@@ -40,6 +40,7 @@ type User {
   fcmToken: String
   createdAt: DateTime!
   submittedFromCount: Int!
+  submittedForms: [FormSubmission!]
 }
 
 input CreateRoleInput {

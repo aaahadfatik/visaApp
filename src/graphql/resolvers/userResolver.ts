@@ -39,13 +39,13 @@ const userResolvers = {
       return userRoles;
     },
     getUser: async (_: any, { id }: { id: string }, context: any) => {
-      // const authUser = await authenticate(context);
-      // if (!authUser) {
-      //     throw new ApolloError('Unauthorized access', 'UNAUTHORIZED');
-      // }
       return await userRepository.findOne({
         where: { id },
+<<<<<<< HEAD
         relations: ["documents", "notifications", "applications", "submissions"],
+=======
+        relations: ["documents", "notifications", "applications", "submittedForms"  ],
+>>>>>>> 197efbb (add user submitted forms)
       });
     },
     getUsers: async (
