@@ -226,9 +226,9 @@ export interface UpdateCategoryAttributeInput {
 
 export interface UpdateCategoryInput {
   id: string;
-title: string;
+  title?: string;
   isForSale?: boolean;
-  serviceId: string;
+  serviceId?: string;
   vipPrice?: number;
   vvipPrice?: number;
   normalPrice?: number;

@@ -589,6 +589,11 @@ const serviceResolvers = {
       // Update basic fields
       if (input.title !== undefined) category.title = input.title;
       if (input.isForSale !== undefined) category.isForSale = input.isForSale;
+      if (input.vipPrice !== undefined) category.vipPrice = input.vipPrice;
+      if (input.vvipPrice !== undefined) category.vvipPrice = input.vvipPrice;
+      if (input.normalPrice !== undefined) category.normalPrice = input.normalPrice;
+      if (input.description !== undefined) category.description = input.description;
+      if (input.info !== undefined) category.info = input.info;
 
       // Update the service relation (if changed)
       if (input.serviceId) {
