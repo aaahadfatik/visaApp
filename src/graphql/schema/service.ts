@@ -18,6 +18,7 @@ const service = gql`
     COMPLETED
     UNDER_PROGRESS
     REJECTED
+    PAYMENT_PENDING
     RETURN_MODIFICATION
   }
 
@@ -146,6 +147,11 @@ const service = gql`
     id: ID!
     title: String
     isForSale: Boolean
+    vipPrice: Float
+    vvipPrice: Float
+    normalPrice: Float
+    description: [String!]
+    info: [String!]
     serviceId: ID
   }
 

@@ -34,7 +34,7 @@ export default class FormSubmission extends BaseEntity {
   @OneToMany(() => Document, (d) => d.formSubmission, { cascade: true, nullable: true })
   documents!: Document[];
 
-  @Column({ type: 'enum', enum: FormStatus, nullable: true })
+  @Column({ type: 'enum', enum: FormStatus, nullable: true, default: FormStatus.PAYMENT_PENDING })
   status!: FormStatus
 
 

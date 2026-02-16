@@ -731,7 +731,6 @@ const serviceResolvers = {
         answers: input.answers,
         category,
         createdBy: ctxUser.userId,
-        status: FormStatus.UNDER_PROGRESS,
       });
 
       const sumittedForm = await submissionRepo.save(submission);
