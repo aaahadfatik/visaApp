@@ -1,150 +1,149 @@
-import { gql } from 'apollo-server';
+import { gql } from "apollo-server";
 
 const user = gql`
-scalar DateTime
+  scalar DateTime
 
-enum Gender {
-  MALE
-  FEMALE
-  OTHER
-}
+  enum Gender {
+    MALE
+    FEMALE
+    OTHER
+  }
 
-type Role {
-  id: ID!
-  name: String!
-}
-  
-type User {
-  id: ID!
-  name: String
-  phone: String
-  email: String!
-  picture: String
-  organizationName: String
-  position: String
-  password: String!
-  isSalary: Boolean
-  isExpirence: Boolean
-  otp: Int!
-  isActive: Boolean
-  isCompany: Boolean
-  isProfileCompleted: Boolean
-  lastLoginDate: String
-  refreshToken: String
-  roleId: ID
-  role: Role!
-  documents: [Document!]
-  notifications: [Notification!]
-  applications: [Application!]
-  submissions: [FormSubmission!]
-  fcmToken: String
-  createdAt: DateTime!
-  submittedFromCount: Int!
-  submittedForms: [FormSubmission!]
-}
+  type Role {
+    id: ID!
+    name: String!
+  }
 
-input CreateRoleInput {
-  name: String!
-}
+  type User {
+    id: ID!
+    name: String
+    phone: String
+    email: String!
+    picture: String
+    organizationName: String
+    position: String
+    password: String!
+    isSalary: Boolean
+    isExpirence: Boolean
+    otp: Int!
+    isActive: Boolean
+    isCompany: Boolean
+    isProfileCompleted: Boolean
+    lastLoginDate: String
+    refreshToken: String
+    roleId: ID
+    role: Role!
+    documents: [Document!]
+    notifications: [Notification!]
+    applications: [Application!]
+    submissions: [FormSubmission!]
+    fcmToken: String
+    createdAt: DateTime!
+    submittedFromCount: Int!
+    submittedForms: [FormSubmission!]
+  }
 
-input UpdateRoleInput {
-  id:String!
-  name: String
-}
+  input CreateRoleInput {
+    name: String!
+  }
 
-type UserReturn {
-  users: [User!]!
-  total: Int
-}
+  input UpdateRoleInput {
+    id: String!
+    name: String
+  }
 
-input UserInput {
-  name: String
-  phone: String!
-  email: String!
-  password: String!
+  type UserReturn {
+    users: [User!]!
+    total: Int
+  }
 
-  picture: String
+  input UserInput {
+    name: String
+    phone: String!
+    email: String!
+    password: String!
 
-  isCompany: Boolean
-  organizationName: String
-  position: String
-  isSalary: Boolean
-  isExpirence: Boolean
-  isActive: Boolean
-  isProfileCompleted: Boolean
-  lastLoginDate: String
-  refreshToken: String
-  documents: [CreateDocumentInput]
-  fcmToken: String
-}
+    picture: String
 
-input UpdateUserInput {
-  id:String!
-  name: String
-  phone: String
-  email: String
-  organizationName: String
-  position: String
-  password: String
-  isSalary: Boolean
-  isExpirence: Boolean
-  isActive: Boolean
-  isCompany: Boolean
-  isProfileCompleted: Boolean
-  lastLoginDate: String
-  picture: String
-  refreshToken: String
-  roleId: ID
-  fcmToken: String
-}
+    isCompany: Boolean
+    organizationName: String
+    position: String
+    isSalary: Boolean
+    isExpirence: Boolean
+    isActive: Boolean
+    isProfileCompleted: Boolean
+    lastLoginDate: String
+    refreshToken: String
+    documents: [CreateDocumentInput]
+    fcmToken: String
+  }
 
+  input UpdateUserInput {
+    id: String!
+    name: String
+    phone: String
+    email: String
+    organizationName: String
+    position: String
+    password: String
+    isSalary: Boolean
+    isExpirence: Boolean
+    isActive: Boolean
+    isCompany: Boolean
+    isProfileCompleted: Boolean
+    lastLoginDate: String
+    picture: String
+    refreshToken: String
+    roleId: ID
+    fcmToken: String
+  }
 
-type LogoutResponse {
-  message: String!
-}
+  type LogoutResponse {
+    message: String!
+  }
 
-type LoginRes {
-  token : String,
-  user: User
-}
-    
-type AuthPayload {
-  token: String!
-  refreshToken: String!
-  user: User!
-}
+  type LoginRes {
+    token: String
+    user: User
+  }
 
-type AuthResponse {
-  token: String!
-}
+  type AuthPayload {
+    token: String!
+    refreshToken: String!
+    user: User!
+  }
 
-input UserFilter {
-  status: Boolean
-  type: Boolean
-  search: String
-}
+  type AuthResponse {
+    token: String!
+  }
 
-type UserTypeReturn {
-  companyCount: Int!
-  individualCount: Int!
-}
+  input UserFilter {
+    status: Boolean
+    type: Boolean
+    search: String
+  }
 
-type DashboardStatisticsReturn {
-  totalUsers: Int!
-  applicationsSubmitted: Int!
-  pendingApplications: Int!
-  todayApplications: Int!
-}
+  type UserTypeReturn {
+    companyCount: Int!
+    individualCount: Int!
+  }
 
-type RegisteredUsersGraphItem {
-  companyCount: Int!
-  individualCount: Int!
-}
+  type DashboardStatisticsReturn {
+    totalUsers: Int!
+    applicationsSubmitted: Int!
+    pendingApplications: Int!
+    todayApplications: Int!
+  }
 
-type RegisteredUsersGraphReturn {
-  year:String!
-  data: [RegisteredUsersGraphItem!]!
-}
+  type RegisteredUsersGraphItem {
+    companyCount: Int!
+    individualCount: Int!
+  }
+
+  type RegisteredUsersGraphReturn {
+    year: String!
+    data: [RegisteredUsersGraphItem!]!
+  }
 
   type OTPVerificationResponse {
     success: Boolean!
@@ -152,38 +151,43 @@ type RegisteredUsersGraphReturn {
     resetToken: String
   }
 
-type Query {
-  getRoles: [Role!]!
+  type Query {
+    getRoles: [Role!]!
 
-  getUser(id: ID!): User
-  getUsers(limit: Int, offset: Int, filter:UserFilter): UserReturn!
-  getUserTypesCount: UserTypeReturn!
-  getDashboardStatistics: DashboardStatisticsReturn!
-  getRegisteredUsersGraph(year:String): RegisteredUsersGraphReturn!
-}
+    getUser(id: ID!): User
+    getAdminUser(id: ID): User
+    getUsers(limit: Int, offset: Int, filter: UserFilter): UserReturn!
+    getUserTypesCount: UserTypeReturn!
+    getDashboardStatistics: DashboardStatisticsReturn!
+    getRegisteredUsersGraph(year: String): RegisteredUsersGraphReturn!
+  }
 
-type Mutation {
-  createRole(input: CreateRoleInput!): Role!
-  updateRole(input: UpdateRoleInput!): Role!
+  type Mutation {
+    createRole(input: CreateRoleInput!): Role!
+    updateRole(input: UpdateRoleInput!): Role!
 
-  login(email:String password: String!): LoginRes
-  logout: LogoutResponse
+    login(email: String, password: String!): LoginRes
+    logout: LogoutResponse
 
-  createUser(input: UserInput!): User!
-  updateUser(input: UpdateUserInput!): User!
-  deleteUser(id: ID!): Boolean!
-  changePassword(email:String oldPassword: String newPassword: String!): Boolean!
+    createUser(input: UserInput!): User!
+    updateUser(input: UpdateUserInput!): User!
+    deleteUser(id: ID!): Boolean!
+    changePassword(
+      email: String
+      oldPassword: String
+      newPassword: String!
+    ): Boolean!
 
-  generateClientAccountNumber: String
-  refreshToken(token: String!): AuthResponse
+    generateClientAccountNumber: String
+    refreshToken(token: String!): AuthResponse
 
-   verifyEmailOTP(email: String!, otp: String!): OTPVerificationResponse!
-  verifyEmail(email: String!): String
-  forgetPassword(email: String!): String
-}
-type Subscription {
-  newNotification: Notification!
-}
+    verifyEmailOTP(email: String!, otp: String!): OTPVerificationResponse!
+    verifyEmail(email: String!): String
+    forgetPassword(email: String!): String
+  }
+  type Subscription {
+    newNotification: Notification!
+  }
 `;
 
 export default user;

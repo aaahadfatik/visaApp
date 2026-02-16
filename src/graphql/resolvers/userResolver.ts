@@ -16,7 +16,6 @@ import crypto from "crypto";
 import { sendEmail } from "../../service/emailService";
 import { baseEmailTemplate } from "../../utils/emailTemplates";
 
-
 const roleRepository = dataSource.getRepository(Role);
 const userRepository = dataSource.getRepository(User);
 const documentRepository = dataSource.getRepository(Document);
@@ -41,12 +40,35 @@ const userResolvers = {
     getUser: async (_: any, { id }: { id: string }, context: any) => {
       return await userRepository.findOne({
         where: { id },
-<<<<<<< HEAD
-        relations: ["documents", "notifications", "applications", "submissions"],
-=======
-        relations: ["documents", "notifications", "applications", "submittedForms"  ],
->>>>>>> 197efbb (add user submitted forms)
+        relations: [
+          "documents",
+          "notifications",
+          "applications",
+          "submittedForms",
+        ],
       });
+    },
+    getAdminUser: async (_: any, { id }: { id?: string }, context: any) => {
+      await authenticate(context);
+
+      const query = userRepository
+        .createQueryBuilder("user")
+        .leftJoinAndSelect("user.role", "role")
+        .leftJoinAndSelect("user.documents", "documents")
+        .leftJoinAndSelect("user.notifications", "notifications")
+        .leftJoinAndSelect("user.applications", "applications")
+        .leftJoinAndSelect("user.submissions", "submissions")
+        .where("LOWER(role.name) IN (:...roles)", {
+          roles: ["admin", "super admin"],
+        })
+        .andWhere("user.isDeleted = :isDeleted", { isDeleted: false })
+        .orderBy("user.createdAt", "DESC");
+
+      if (id) {
+        query.andWhere("user.id = :id", { id });
+      }
+
+      return await query.getOne();
     },
     getUsers: async (
       _: any,
@@ -55,7 +77,7 @@ const userResolvers = {
         offset,
         filter,
       }: { limit: number; offset: number; filter: UserFilter },
-      context: any
+      context: any,
     ) => {
       let whereClause: any = {};
       if (filter) {
@@ -74,7 +96,12 @@ const userResolvers = {
         take: limit,
         skip: offset,
         order: { createdAt: "DESC" },
-        relations: ["documents", "notifications", "applications", "submissions"],
+        relations: [
+          "documents",
+          "notifications",
+          "applications",
+          "submissions",
+        ],
       });
       if (!users) throw new Error("Users not found");
       const usersWithCounts = await Promise.all(
@@ -87,7 +114,7 @@ const userResolvers = {
             ...user,
             submittedFromCount,
           };
-        })
+        }),
       );
 
       return { users: usersWithCounts, total };
@@ -184,13 +211,13 @@ const userResolvers = {
       const token = jwt.sign(
         { userId: user.id, email: user.email },
         process.env.JWT_SECRET!,
-        { expiresIn: "30d" }
+        { expiresIn: "30d" },
       );
 
       const refreshToken = jwt.sign(
         { userId: user.id, email: user.email },
         process.env.JWT_REFRESH_SECRET!,
-        { expiresIn: "30d" }
+        { expiresIn: "30d" },
       );
 
       // ✅ correct token assignment
@@ -233,7 +260,7 @@ const userResolvers = {
     createUser: async (
       _: any,
       { input }: { input: CreateUserInput },
-      context: any
+      context: any,
     ) => {
       try {
         // const usercxt = await authenticate(context);
@@ -276,7 +303,7 @@ const userResolvers = {
                 user: savedUser, // ✅ connect to the user properly
               });
               await documentRepository.save(newDoc);
-            })
+            }),
           );
         }
 
@@ -291,7 +318,7 @@ const userResolvers = {
     updateUser: async (
       _: any,
       { input }: { input: UpdateUserInput },
-      context: any
+      context: any,
     ) => {
       try {
         // Fetch the existing user
@@ -350,7 +377,12 @@ const userResolvers = {
     },
     changePassword: async (
       _: any,
-      { email, oldPassword, newPassword }: { email?: string, oldPassword?: string; newPassword: string }) => {
+      {
+        email,
+        oldPassword,
+        newPassword,
+      }: { email?: string; oldPassword?: string; newPassword: string },
+    ) => {
       const user = await userRepository.findOne({
         where: { email },
       });
@@ -376,7 +408,7 @@ const userResolvers = {
         // Verify refresh token
         const decoded: any = jwt.verify(
           token,
-          process.env.REFRESH_TOKEN_SECRET!
+          process.env.REFRESH_TOKEN_SECRET!,
         );
         const user = await userRepository.findOne({
           where: { id: decoded.userId },
@@ -389,7 +421,7 @@ const userResolvers = {
         const accessToken = jwt.sign(
           { userId: user.id, Email: user.email },
           process.env.JWT_SECRET!,
-          { expiresIn: "10m" }
+          { expiresIn: "10m" },
         );
 
         return { accessToken };
@@ -397,7 +429,10 @@ const userResolvers = {
         throw new Error("Invalid or expired refresh token");
       }
     },
-    verifyEmail: async (_: any, { email }: { email: string }): Promise<string> => {
+    verifyEmail: async (
+      _: any,
+      { email }: { email: string },
+    ): Promise<string> => {
       try {
         // Normalize email
         const normalizedEmail = email.trim().toLowerCase();
@@ -460,7 +495,10 @@ const userResolvers = {
         throw new Error(error.message || "Failed to verify OTP");
       }
     },
-    verifyEmailOTP: async (_: any, { email, otp }: { email: string; otp: string }): Promise<{ success: boolean; message: string; resetToken?: string }> => {
+    verifyEmailOTP: async (
+      _: any,
+      { email, otp }: { email: string; otp: string },
+    ): Promise<{ success: boolean; message: string; resetToken?: string }> => {
       try {
         const normalizedEmail = email.trim().toLowerCase();
 
@@ -570,7 +608,7 @@ const userResolvers = {
       } catch (error: any) {
         throw new Error(error.message || "Failed to verify OTP");
       }
-    }
+    },
   },
 };
 
