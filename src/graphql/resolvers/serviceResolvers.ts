@@ -355,8 +355,8 @@ const serviceResolvers = {
         .leftJoinAndSelect("submission.documents", "documents")
         .orderBy("submission.createdAt", "DESC")
         .where("submission.createdBy = :userId", { userId })
-        .andWhere("submission.status = :status", {
-          status: FormStatus.UNDER_PROGRESS,
+        .andWhere("submission.status IN (:...statuses)", {
+          statuses: [FormStatus.UNDER_PROGRESS, FormStatus.PAYMENT_PENDING],
         })
         .getMany();
 
