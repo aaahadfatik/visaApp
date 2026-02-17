@@ -302,6 +302,7 @@ const service = gql`
 
     createCategory(input: CreateCategoryInput!): Category!
     updateCategory(input: UpdateCategoryInput!): Category!
+    deleteCategory(id: ID!): Boolean!
 
     updateCategoryAttribute(input: UpdateCategoryAttributeInput!): CategoryAttribute!
 

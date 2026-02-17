@@ -606,6 +606,16 @@ const serviceResolvers = {
 
       return await categoryRepo.save(category);
     },
+    deleteCategory: async (_: any, { id }: { id: string }, context: any) => {
+      const ctxUser = await authenticate(context);
+      if (!ctxUser) throw new Error("Unauthorized");
+
+      const category = await categoryRepo.findOne({ where: { id } });
+      if (!category) throw new Error("Category not found");
+
+      await categoryRepo.remove(category);
+      return true;
+    },
     updateCategoryAttribute: async ({
       input,
     }: {
