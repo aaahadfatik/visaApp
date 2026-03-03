@@ -44,7 +44,7 @@ const userResolvers = {
           "documents",
           "notifications",
           "applications",
-          "submittedForms",
+          "submissions",
         ],
       });
     },
