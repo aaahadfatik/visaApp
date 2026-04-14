@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: "visaapp",
-      script: "dist/index.js",
+      script: "src/server.ts",
       env: {
         DB_HOST: "localhost",
         DB_PORT: 5436,
