@@ -1,5 +1,4 @@
-dotenv.config();
-import dotenv from "dotenv";
+import "dotenv/config";
 import { DataSource } from "typeorm";
 import {
   User,
