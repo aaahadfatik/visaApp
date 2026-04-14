@@ -1,12 +1,11 @@
 {
-    "type": "postgres",
-    "host": "localhost",
-    "port": 5432,
-    "database": "postgres",
-    "synchronize": true,
-    "logging": false,
-    "entities": [
-      "src/entity/**/*.ts"
-    ]
-  }
-  
+  "type": "postgres",
+  "host": "localhost",
+  "port": 5432,
+  "username": "postgres",
+  "password": "password",
+  "database": "docUpload",
+  "synchronize": true,
+  "logging": false,
+  "entities": ["src/entity/**/*.ts"]
+}
