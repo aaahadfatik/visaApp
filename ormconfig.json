@@ -7,5 +7,5 @@
   "database": "docUpload",
   "synchronize": true,
   "logging": false,
-  "entities": ["src/entity/**/*.ts"]
+  "entities": ["dist/entity/**/*.js"]
 }
