@@ -29,23 +29,31 @@ if (!jwtSecret) {
 
 const app: any = express();
 
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:3001",
+  "http://localhost:8080",
+  "http://admin.alem.ae",
+  "https://admin.alem.ae",
+  "https://studio.apollographql.com",
+  ...(process.env.CORS_ORIGINS?.split(",").map((o) => o.trim()) ?? []),
+].filter(Boolean);
+
+const isAllowedOrigin = (origin?: string) => {
+  if (!origin) return true;
+  return allowedOrigins.includes(origin);
+};
+
 // Enable CORS for all routes
 app.use(
   (req: express.Request, res: express.Response, next: express.NextFunction) => {
-    const allowedOrigins = [
-      "http://localhost:3000",
-      "http://localhost:3001",
-      "http://localhost:8080",
-      "http://admin.alem.ae",
-      "https://admin.alem.ae",
-      "https://studio.apollographql.com",
-    ];
-
     const origin = req.headers.origin;
-    if (origin && allowedOrigins.includes(origin)) {
+
+    if (origin && isAllowedOrigin(origin)) {
       res.setHeader("Access-Control-Allow-Origin", origin);
     }
 
+    res.setHeader("Vary", "Origin");
     res.setHeader(
       "Access-Control-Allow-Methods",
       "GET, POST, PUT, DELETE, OPTIONS",
@@ -337,13 +345,13 @@ dataSource
       app,
       cors: {
         credentials: true,
-        origin: [
-          "http://localhost:8080",
-          "https://studio.apollographql.com",
-          "http://localhost:3000",
-          "http://localhost:3001",
-          "https://admin.alem.ae",
-        ],
+        origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+          if (!origin || isAllowedOrigin(origin)) {
+            callback(null, true);
+          } else {
+            callback(new Error("Not allowed by CORS"), false);
+          }
+        },
       },
     });
 

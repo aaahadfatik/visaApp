@@ -91,30 +91,30 @@ const serviceResolvers = {
 
       const filtered = keyword
         ? services.filter(
-          (service) =>
+          (service: typeof services[number]) =>
             service.title.toLowerCase().includes(keyword) ||
             service.categories?.some(
-              (category) =>
+              (category: typeof service.categories[number]) =>
                 category.title?.toLowerCase().includes(keyword) ||
-                category.visas?.some((visa) =>
+                category.visas?.some((visa: typeof category.visas[number]) =>
                   visa.title?.toLowerCase().includes(keyword),
                 ),
             ),
         )
         : services;
 
-      return filtered.map((service) => {
+      return filtered.map((service: typeof services[number]) => {
         const submissions =
           service.categories?.flatMap(
-            (category) => category.submissions ?? [],
+            (category: typeof service.categories[number]) => category.submissions ?? [],
           ) ?? [];
 
         const pendingSubmission = submissions.filter(
-          (s) => s.status === "UNDER_PROGRESS",
+          (s: typeof submissions[number]) => s.status === "UNDER_PROGRESS",
         ).length;
 
         const completedSubmission = submissions.filter(
-          (s) => s.status === "COMPLETED",
+          (s: typeof submissions[number]) => s.status === "COMPLETED",
         ).length;
 
         return {
@@ -153,7 +153,7 @@ const serviceResolvers = {
 
       if (search) {
         const keyword = search.toLowerCase();
-        category.visas = category.visas.filter((visa) =>
+        category.visas = category.visas.filter((visa: typeof category.visas[number]) =>
           visa.title.toLowerCase().includes(keyword),
         );
       }
@@ -468,7 +468,7 @@ const serviceResolvers = {
 
       // Edge case: no submissions
       if (total === 0) {
-        return Object.values(FormStatus).map((status) => ({
+        return (Object.values(FormStatus) as FormStatus[]).map((status: FormStatus) => ({
           status,
           percentage: 0,
         }));
@@ -483,12 +483,12 @@ const serviceResolvers = {
 
       // Convert to map for easy lookup
       const statusCountMap = new Map<FormStatus, number>();
-      rawStats.forEach((row) => {
+      rawStats.forEach((row: { status: FormStatus; count: string }) => {
         statusCountMap.set(row.status, Number(row.count));
       });
 
       // 3️⃣ Calculate percentage for ALL statuses
-      const result = Object.values(FormStatus).map((status) => {
+      const result = (Object.values(FormStatus) as FormStatus[]).map((status: FormStatus) => {
         const count = statusCountMap.get(status) ?? 0;
         const percentage = (count / total) * 100;
 
